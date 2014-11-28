@@ -1,5 +1,7 @@
 extern crate rustbox;
 
+mod minegrid;
+
 fn main() {
     rustbox::init();
     rustbox::print(1, 1, rustbox::Bold, rustbox::White, rustbox::Black, "Hello, World!".to_string());
