@@ -1,0 +1,9 @@
+[package]
+
+name = "rust-mines"
+version = "0.0.1"
+authors = ["Gabriel Martinez <reitaka@gmail.com>"]
+
+[dependencies.rustbox]
+
+git = "https://github.com/gchp/rustbox.git"
