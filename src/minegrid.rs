@@ -80,12 +80,13 @@ impl MineGrid {
             state: GridState::Play,
         };
 
-        // TODO: Count surrounding mines
-        //for row in cells {
-        //    for cell in row {
-        //        cell.surrounding_mines = grid.;
-        //    }
-        //}
+        // Count surrounding mines
+        for j in range(0, height) {
+            for i in range(0, width) {
+                grid.cells[j as uint][i as uint].surrounding_mines =
+                    grid.count_surrounding_mines(i, j);
+            }
+        }
 
         grid
     }
@@ -134,6 +135,10 @@ impl MineGrid {
             }
         }
         neighbors
+    }
+
+    fn count_surrounding_mines(&self, x: u32, y: u32) -> u8 {
+        self.get_neighbors(x, y).iter().filter(|&n| n.mines != 0).count() as u8
     }
 
     //pub fn toggle_flag(&mut self, x: u32, y: u32) {
