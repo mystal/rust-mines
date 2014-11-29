@@ -110,6 +110,10 @@ impl MineGrid {
         self.mines
     }
 
+    pub fn mines_left(&self) -> u32 {
+        self.mines - self.mines_flagged
+    }
+
     pub fn check_point(&self, x: u32, y: u32) -> bool {
         x < self.width && y < self.height
     }
@@ -138,7 +142,19 @@ impl MineGrid {
     }
 
     fn count_surrounding_mines(&self, x: u32, y: u32) -> u8 {
-        self.get_neighbors(x, y).iter().filter(|&n| n.mines != 0).count() as u8
+        let mut mines = 0;
+        for n in self.get_neighbors(x, y).iter() {
+            mines += n.mines;
+        }
+        mines
+    }
+
+    fn count_surrounding_flags(&self, x: u32, y: u32) -> u8 {
+        let mut flags = 0;
+        for n in self.get_neighbors(x, y).iter() {
+            flags += n.flags;
+        }
+        flags
     }
 
     //pub fn toggle_flag(&mut self, x: u32, y: u32) {
