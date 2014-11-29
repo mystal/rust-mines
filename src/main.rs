@@ -1,3 +1,5 @@
+#![feature(if_let)]
+
 extern crate rustbox;
 
 mod minegrid;
