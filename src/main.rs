@@ -4,6 +4,7 @@ extern crate rustbox;
 
 use minegrid::GridState;
 use minegrid::MineGrid;
+use rustbox as tb;
 use rustbox::Event;
 use std::char;
 
@@ -63,7 +64,7 @@ impl Game {
     }
 
     fn update(&mut self) {
-        match rustbox::poll_event() {
+        match tb::poll_event() {
             Event::KeyEvent(_, _, ch) => {
                 match char::from_u32(ch) {
                     Some('q') => self.state = GameState::Quit,
@@ -72,7 +73,7 @@ impl Game {
             },
             _ => return,
         }
-        //let action = action_funcs[game.state][rustbox::poll_event()];
+        //let action = action_funcs[game.state][tb::poll_event()];
         //if let Some(act) {
         //    let next_state = act();
         //    clear = next_state != game.state;
@@ -81,13 +82,14 @@ impl Game {
     }
 
     fn display(&self/*, clear: bool*/) {
-        //rustbox::print(1, 1, rustbox::Bold, rustbox::White, rustbox::Black, "Hello, World!".to_string());
-        //rustbox::present();
+        tb::clear();
+        //tb::print(1, 1, tb::Bold, tb::White, tb::Black, "Hello, World!".to_string());
+        //tb::present();
     }
 }
 
 fn main() {
-    rustbox::init();
+    tb::init();
 
     let mut game = Game::new();
 
@@ -97,5 +99,5 @@ fn main() {
         game.update();
     }
 
-    rustbox::shutdown();
+    tb::shutdown();
 }
