@@ -172,8 +172,39 @@ impl MineGrid {
         }
     }
 
-    //pub fn reveal(&mut self, x: u32, y: u32) {
-    //}
+    pub fn reveal(&mut self, x: u32, y: u32) {
+        if !self.check_point(x, y) {
+            return;
+        }
+
+        if self.cells[y as uint][x as uint].flags != 0 {
+            return;
+        }
+
+        if self.cells[y as uint][x as uint].revealed {
+            // TODO: if flags match surrounding mines, reveal surrounding cells
+            return;
+        }
+
+        self.cells[y as uint][x as uint].revealed = true;
+        if self.cells[y as uint][x as uint].mines != 0 {
+            self.state = GridState::Lose;
+            return;
+        }
+
+        self.spaces_left -= 1;
+        if self.spaces_left == 0 {
+            self.state = GridState::Win;
+            return;
+        }
+
+        if self.cells[y as uint][x as uint].surrounding_mines == 0 {
+            let neighbors = self.get_neighbors(x, y);
+            for cell in neighbors.iter() {
+                self.reveal(cell.x, cell.y);
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -235,5 +266,33 @@ mod minegrid_test {
         assert_eq!(1, grid.get_cell(0, 0).unwrap().flags());
         grid.toggle_flag(0, 0);
         assert_eq!(0, grid.get_cell(0, 0).unwrap().flags());
+    }
+
+    #[test]
+    fn test_reveal_empty_grid() {
+        let (width, height, mines) = (10, 10, 0);
+        let mut grid = MineGrid::new(width, height, mines);
+
+        assert_eq!(false, grid.get_cell(0, 0).unwrap().revealed());
+        assert_eq!(GridState::Play, grid.state());
+        grid.reveal(0, 0);
+        for j in range(0, height) {
+            for i in range(0, width) {
+                assert_eq!(true, grid.get_cell(i, j).unwrap().revealed());
+            }
+        }
+        assert_eq!(GridState::Win, grid.state());
+    }
+
+    #[test]
+    fn test_reveal_mine() {
+        let (width, height, mines) = (10, 10, 100);
+        let mut grid = MineGrid::new(width, height, mines);
+
+        assert_eq!(false, grid.get_cell(0, 0).unwrap().revealed());
+        assert_eq!(GridState::Play, grid.state());
+        grid.reveal(0, 0);
+        assert_eq!(true, grid.get_cell(0, 0).unwrap().revealed());
+        assert_eq!(GridState::Lose, grid.state());
     }
 }
