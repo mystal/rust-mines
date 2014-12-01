@@ -121,15 +121,15 @@ impl MineGrid {
         x < self.width && y < self.height
     }
 
-    pub fn get_cell(&self, x: u32, y: u32) -> Option<&Cell> {
+    pub fn get_cell(&self, x: u32, y: u32) -> Option<Cell> {
         if self.check_point(x, y) {
-            Some(&self.cells[y as uint][x as uint])
+            Some(self.cells[y as uint][x as uint])
         } else {
             None
         }
     }
 
-    pub fn get_neighbors(&self, x: u32, y: u32) -> Vec<&Cell> {
+    pub fn get_neighbors(&self, x: u32, y: u32) -> Vec<Cell> {
         let mut neighbors = Vec::with_capacity(8);
         for j in range(-1, 2i32) {
             for i in range(-1, 2i32) {
