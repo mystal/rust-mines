@@ -129,14 +129,6 @@ impl MineGrid {
         }
     }
 
-    fn get_cell_mut(&mut self, x: u32, y: u32) -> Option<&mut Cell> {
-        if self.check_point(x, y) {
-            Some(&mut self.cells[y as uint][x as uint])
-        } else {
-            None
-        }
-    }
-
     pub fn get_neighbors(&self, x: u32, y: u32) -> Vec<&Cell> {
         let mut neighbors = Vec::with_capacity(8);
         for j in range(-1, 2i32) {
@@ -169,11 +161,14 @@ impl MineGrid {
     }
 
     pub fn toggle_flag(&mut self, x: u32, y: u32) {
+        if !self.check_point(x, y) {
+            return;
+        }
+
         let max_mines = self.max_mines;
-        if let Some(cell) = self.get_cell_mut(x, y) {
-            if !cell.revealed {
-                cell.flags = (cell.flags + 1) % (max_mines + 1);
-            }
+        let cell = &mut self.cells[y as uint][x as uint];
+        if !cell.revealed {
+            cell.flags = (cell.flags + 1) % (max_mines + 1);
         }
     }
 
