@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 use std::rand;
+use std::rand::Rng;
 
 pub struct Cell {
     x: u32,
@@ -48,9 +49,11 @@ impl MineGrid {
         let mut cells = Vec::with_capacity(height as uint);
 
         // Randomly place mines
+        let mut rng = rand::task_rng();
         let mut mine_points = HashSet::new();
         while mine_points.len() != mines as uint {
-            let point: (u32, u32) = rand::random();
+            let point = (rng.gen_range(0, width),
+                         rng.gen_range(0, height));
             mine_points.insert(point);
         }
 
@@ -188,6 +191,14 @@ mod minegrid_test {
         let (width, height, mines) = (10, 10, 10);
 
         let grid = MineGrid::new(width, height, mines);
+
+        let mut mine_count = 0;
+        for j in range(0, height) {
+            for i in range(0, width) {
+                mine_count += grid.get_cell(i, j).unwrap().mines() as u32;
+            }
+        }
+        assert_eq!(mines, mine_count);
 
         assert_eq!(width, grid.width());
         assert_eq!(height, grid.height());
