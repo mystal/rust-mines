@@ -22,7 +22,7 @@ pub struct MineGrid {
     width: u32,
     height: u32,
     mines: u32,
-    max_flags: u8,
+    max_mines: u8,
     mines_flagged: u32,
     spaces_left: u32,
     state: GridState,
@@ -74,7 +74,7 @@ impl MineGrid {
             width: width,
             height: height,
             mines: mines,
-            max_flags: 1,
+            max_mines: 1,
             mines_flagged: 0,
             spaces_left: width * height - mines,
             state: GridState::Play,
@@ -126,6 +126,14 @@ impl MineGrid {
         }
     }
 
+    fn get_cell_mut(&mut self, x: u32, y: u32) -> Option<&mut Cell> {
+        if self.check_point(x, y) {
+            Some(&mut self.cells[y as uint][x as uint])
+        } else {
+            None
+        }
+    }
+
     pub fn get_neighbors(&self, x: u32, y: u32) -> Vec<&Cell> {
         let mut neighbors = Vec::with_capacity(8);
         for j in range(-1, 2i32) {
@@ -157,14 +165,14 @@ impl MineGrid {
         flags
     }
 
-    //pub fn toggle_flag(&mut self, x: u32, y: u32) {
-    //    if self.check_point(x, y) {
-    //        let &mut cell = self.cells[y][x];
-    //        if !cell.revealed {
-    //            cell.flags = (cell.flags + 1) % self.max_flags;
-    //        }
-    //    }
-    //}
+    pub fn toggle_flag(&mut self, x: u32, y: u32) {
+        let max_mines = self.max_mines;
+        if let Some(cell) = self.get_cell_mut(x, y) {
+            if !cell.revealed {
+                cell.flags = (cell.flags + 1) % (max_mines + 1);
+            }
+        }
+    }
 
     //pub fn reveal(&mut self, x: u32, y: u32) {
     //}
@@ -209,5 +217,17 @@ mod minegrid_test {
         assert_eq!(3, grid.get_neighbors(0, 0).len());
         assert_eq!(5, grid.get_neighbors(1, 0).len());
         assert_eq!(8, grid.get_neighbors(1, 1).len());
+    }
+
+    #[test]
+    fn test_toggle_flag() {
+        let (width, height, mines) = (10, 10, 10);
+        let mut grid = MineGrid::new(width, height, mines);
+
+        assert_eq!(0, grid.get_cell(0, 0).unwrap().flags());
+        grid.toggle_flag(0, 0);
+        assert_eq!(1, grid.get_cell(0, 0).unwrap().flags());
+        grid.toggle_flag(0, 0);
+        assert_eq!(0, grid.get_cell(0, 0).unwrap().flags());
     }
 }
