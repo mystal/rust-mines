@@ -42,6 +42,10 @@ impl Cell {
     pub fn revealed(&self) -> bool {
         self.revealed
     }
+
+    pub fn surrounding_mines(&self) -> u8 {
+        self.surrounding_mines
+    }
 }
 
 impl MineGrid {
