@@ -2,11 +2,11 @@
 name = "rust-mines"
 version = "0.0.1"
 dependencies = [
- "rustbox 0.1.0 (git+https://github.com/gchp/rustbox.git)",
+ "termbox 0.0.0-alpha (git+https://github.com/mystal/rust-termbox.git?ref=dev)",
 ]
 
 [[package]]
-name = "rustbox"
-version = "0.1.0"
-source = "git+https://github.com/gchp/rustbox.git#3e85d59154adb87a9c3d41246f37f38929a141ab"
+name = "termbox"
+version = "0.0.0-alpha"
+source = "git+https://github.com/mystal/rust-termbox.git?ref=dev#4ae6133efb9896b533eb6702599626cf4c253542"
 

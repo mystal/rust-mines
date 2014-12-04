@@ -4,6 +4,7 @@ name = "rust-mines"
 version = "0.0.1"
 authors = ["Gabriel Martinez <reitaka@gmail.com>"]
 
-[dependencies.rustbox]
+[dependencies.termbox]
 
-git = "https://github.com/gchp/rustbox.git"
+git = "https://github.com/mystal/rust-termbox.git"
+rev = "dev"

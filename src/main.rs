@@ -1,11 +1,16 @@
 #![feature(if_let, tuple_indexing)]
 
-extern crate rustbox;
+extern crate termbox;
 
 use minegrid::GridState;
 use minegrid::MineGrid;
-use rustbox as tb;
-use rustbox::Event;
+use termbox as tb;
+use termbox::{
+    Color,
+    Event,
+    Key,
+    Style,
+};
 use std::char;
 
 mod minegrid;
@@ -33,6 +38,7 @@ struct Game {
     cursor_pos: (uint, uint),
     grid_changed: bool,
     state: GameState,
+    clear_screen: bool,
 }
 
 impl Game {
@@ -45,6 +51,7 @@ impl Game {
             cursor_pos: (0, 0),
             grid_changed: false,
             state: GameState::Play,
+            clear_screen: false,
         };
 
         game.reset(Difficulty::Easy);
@@ -66,7 +73,7 @@ impl Game {
     fn update(&mut self) {
         match tb::poll_event() {
             Event::KeyEvent(_, _, ch) => {
-                match char::from_u32(ch) {
+                match ch {
                     Some('q') => self.state = GameState::Quit,
                     _ => return,
                 }
@@ -93,9 +100,8 @@ fn main() {
 
     let mut game = Game::new();
 
-    //bool clear = true;
     while game.state != GameState::Quit {
-        game.display(/*clear*/);
+        game.display();
         game.update();
     }
 
