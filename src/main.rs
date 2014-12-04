@@ -72,9 +72,11 @@ impl Game {
 
     fn update(&mut self) {
         match tb::poll_event() {
-            Event::KeyEvent(_, _, ch) => {
-                match ch {
-                    Some('q') => self.state = GameState::Quit,
+            Event::KeyEvent(_, key, ch) => {
+                match (key, ch) {
+                    (_, Some('q')) => self.state = GameState::Quit,
+                    (Some(Key::Space), _) => self.grid.reveal(
+                        self.cursor_pos.0 as u32, self.cursor_pos.1 as u32),
                     _ => return,
                 }
             },
@@ -88,10 +90,64 @@ impl Game {
         //}
     }
 
-    fn display(&self/*, clear: bool*/) {
-        tb::clear();
-        //tb::print(1, 1, tb::Bold, tb::White, tb::Black, "Hello, World!".to_string());
-        //tb::present();
+    fn display(&self) {
+        if self.clear_screen {
+            tb::clear();
+            //self.clear_screen = false;
+        }
+
+        let mut line_pos = 0;
+        let mut line = String::with_capacity(self.grid.width() as uint + 2);
+
+        line.push('#');
+        for i in range(0, self.grid.width()) {
+            line.push('#');
+        }
+        line.push('#');
+        tb::print(0, line_pos, Style::Bold, Color::White, Color::Black, line.as_slice());
+
+        for j in range(0, self.grid.height()) {
+            line_pos += 1;
+            line.clear();
+
+            line.push('#');
+            for i in range(0, self.grid.width()) {
+                let cell = self.grid.get_cell(i, j).unwrap();
+                let surrounding_mines_string = cell.surrounding_mines().to_string();
+                line.push_str(if cell.flags() != 0 {
+                    "F"
+                } else if !cell.revealed() {
+                    "-"
+                } else if cell.mines() != 0 {
+                    "*"
+                } else if cell.surrounding_mines() != 0 {
+                    surrounding_mines_string.as_slice()
+                } else {
+                    " "
+                });
+            }
+
+            line.push('#');
+            tb::print(0, line_pos, Style::Bold, Color::White, Color::Black, line.as_slice());
+        }
+
+        line_pos += 1;
+        line.clear();
+
+        line.push('#');
+        for i in range(0, self.grid.width()) {
+            line.push('#');
+        }
+        line.push('#');
+        tb::print(0, line_pos, Style::Bold, Color::White, Color::Black, line.as_slice());
+
+        if self.state == GameState::Play {
+            tb::set_cursor(self.cursor_pos.0 + 1, self.cursor_pos.1 + 1);
+        } else {
+            tb::set_cursor(-1, -1);
+        }
+
+        tb::present();
     }
 }
 
