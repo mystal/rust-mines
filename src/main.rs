@@ -11,7 +11,6 @@ use termbox::{
     Key,
     Style,
 };
-use std::char;
 
 mod minegrid;
 
@@ -75,6 +74,8 @@ impl Game {
             Event::KeyEvent(_, key, ch) => {
                 match (key, ch) {
                     (_, Some('q')) => self.state = GameState::Quit,
+                    (_, Some('f')) => self.grid.toggle_flag(
+                        self.cursor_pos.0 as u32, self.cursor_pos.1 as u32),
                     (Some(Key::Space), _) => self.grid.reveal(
                         self.cursor_pos.0 as u32, self.cursor_pos.1 as u32),
                     _ => return,
