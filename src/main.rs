@@ -44,7 +44,7 @@ impl Game {
     fn new() -> Game {
         let mut game = Game {
             grid: MineGrid::new(0, 0, 0),
-            grid_pos: (20, 1),
+            grid_pos: (0, 0),
             actions_pos: (0, 2),
             mines_pos: (0, 0),
             cursor_pos: (0, 0),
@@ -105,7 +105,8 @@ impl Game {
             line.push('#');
         }
         line.push('#');
-        tb::print(0, line_pos, Style::Bold, Color::White, Color::Black, line.as_slice());
+        tb::print(self.grid_pos.0, self.grid_pos.1 + line_pos,
+                  Style::Bold, Color::White, Color::Black, line.as_slice());
 
         for j in range(0, self.grid.height()) {
             line_pos += 1;
@@ -129,7 +130,8 @@ impl Game {
             }
 
             line.push('#');
-            tb::print(0, line_pos, Style::Bold, Color::White, Color::Black, line.as_slice());
+            tb::print(self.grid_pos.0, self.grid_pos.1 + line_pos,
+                      Style::Bold, Color::White, Color::Black, line.as_slice());
         }
 
         line_pos += 1;
@@ -140,10 +142,12 @@ impl Game {
             line.push('#');
         }
         line.push('#');
-        tb::print(0, line_pos, Style::Bold, Color::White, Color::Black, line.as_slice());
+        tb::print(self.grid_pos.0, self.grid_pos.1 + line_pos,
+                  Style::Bold, Color::White, Color::Black, line.as_slice());
 
         if self.state == GameState::Play {
-            tb::set_cursor(self.cursor_pos.0 + 1, self.cursor_pos.1 + 1);
+            tb::set_cursor(self.cursor_pos.0 + self.grid_pos.0 + 1,
+                           self.cursor_pos.1 + self.grid_pos.1 + 1);
         } else {
             tb::set_cursor(-1, -1);
         }
