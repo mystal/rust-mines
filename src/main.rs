@@ -33,6 +33,7 @@ struct Game {
     grid: MineGrid,
     grid_pos: (uint, uint),
     actions_pos: (uint, uint),
+    status_pos: (uint, uint),
     mines_pos: (uint, uint),
     cursor_pos: (uint, uint),
     grid_changed: bool,
@@ -46,6 +47,7 @@ impl Game {
             grid: MineGrid::new(0, 0, 0),
             grid_pos: (20, 1),
             actions_pos: (0, 2),
+            status_pos: (0, 0),
             mines_pos: (0, 0),
             cursor_pos: (0, 0),
             grid_changed: false,
@@ -65,6 +67,7 @@ impl Game {
             Difficulty::Hard => self.grid = MineGrid::new(40, 16, 99),
         }
 
+        self.status_pos = (0, self.grid_pos.1 + self.grid.height() as uint + 3);
         self.mines_pos = (self.grid_pos.0 + self.grid.width() as uint / 2, 0);
         self.cursor_pos = (0, 0);
     }
@@ -110,7 +113,7 @@ impl Game {
 
         self.draw_grid();
 
-        // TODO: draw status
+        self.draw_status();
 
         if self.state == GameState::Play {
             tb::set_cursor(self.cursor_pos.0 + self.grid_pos.0 + 1,
@@ -170,6 +173,19 @@ impl Game {
         line.push('#');
         tb::print(self.grid_pos.0, self.grid_pos.1 + line_pos,
                   Style::Normal, Color::White, Color::Black, line.as_slice());
+    }
+
+    fn draw_status(&self) {
+        let status = match self.state {
+            GameState::Play => "Play!",
+            GameState::Lose => "You lose...",
+            GameState::Win => "You win!",
+            GameState::New => "Choose a difficulty",
+            _ => "",
+        };
+        tb::print(self.status_pos.0, self.status_pos.1,
+                  Style::Normal, Color::Default, Color::Default,
+                  status.as_slice());
     }
 }
 
