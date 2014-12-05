@@ -44,7 +44,7 @@ impl Game {
     fn new() -> Game {
         let mut game = Game {
             grid: MineGrid::new(0, 0, 0),
-            grid_pos: (0, 0),
+            grid_pos: (20, 1),
             actions_pos: (0, 2),
             mines_pos: (0, 0),
             cursor_pos: (0, 0),
@@ -97,6 +97,32 @@ impl Game {
             //self.clear_screen = false;
         }
 
+        // Title
+        tb::print(0, 0, Style::Bold, Color::Default, Color::Default,
+                  "Minesweeper");
+
+        // TODO: draw actions
+
+        // Mine counter
+        tb::print(self.mines_pos.0, self.mines_pos.1,
+                  Style::Bold, Color::Red, Color::White,
+                  format!("{:02}", self.grid.mines_left()).as_slice());
+
+        self.draw_grid();
+
+        // TODO: draw status
+
+        if self.state == GameState::Play {
+            tb::set_cursor(self.cursor_pos.0 + self.grid_pos.0 + 1,
+                           self.cursor_pos.1 + self.grid_pos.1 + 1);
+        } else {
+            tb::set_cursor(-1, -1);
+        }
+
+        tb::present();
+    }
+
+    fn draw_grid(&self) {
         let mut line_pos = 0;
         let mut line = String::with_capacity(self.grid.width() as uint + 2);
 
@@ -144,15 +170,6 @@ impl Game {
         line.push('#');
         tb::print(self.grid_pos.0, self.grid_pos.1 + line_pos,
                   Style::Bold, Color::White, Color::Black, line.as_slice());
-
-        if self.state == GameState::Play {
-            tb::set_cursor(self.cursor_pos.0 + self.grid_pos.0 + 1,
-                           self.cursor_pos.1 + self.grid_pos.1 + 1);
-        } else {
-            tb::set_cursor(-1, -1);
-        }
-
-        tb::present();
     }
 }
 
