@@ -169,10 +169,12 @@ impl MineGrid {
             return;
         }
 
-        let max_mines = self.max_mines;
-        let cell = &mut self.cells[y as uint][x as uint];
-        if !cell.revealed {
-            cell.flags = (cell.flags + 1) % (max_mines + 1);
+        if self.cells[y as uint][x as uint].flags == self.max_mines {
+            self.mines_flagged -= self.max_mines as u32;
+            self.cells[y as uint][x as uint].flags = 0;
+        } else {
+            self.mines_flagged += 1;
+            self.cells[y as uint][x as uint].flags += 1;
         }
     }
 
