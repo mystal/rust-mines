@@ -69,7 +69,6 @@ struct Game {
     cursor_pos: (uint, uint),
     grid_changed: bool,
     state: GameState,
-    clear_screen: bool,
 }
 
 impl Game {
@@ -83,7 +82,6 @@ impl Game {
             cursor_pos: (0, 0),
             grid_changed: false,
             state: GameState::Play,
-            clear_screen: false,
         };
 
         game.reset(Difficulty::Easy);
@@ -170,10 +168,7 @@ impl Game {
     }
 
     fn display(&self) {
-        if self.clear_screen {
-            tb::clear();
-            //self.clear_screen = false;
-        }
+        tb::clear();
 
         // Title
         tb::print(0, 0, Style::Bold, Color::Default, Color::Default,
