@@ -218,7 +218,7 @@ impl Game {
         }
         line.push('#');
         tb::print(self.grid_pos.0, self.grid_pos.1 + line_pos,
-                  Style::Normal, Color::White, Color::Black, line.as_slice());
+                  Style::Normal, Color::Default, Color::Default, line.as_slice());
 
         for j in range(0, self.grid.height()) {
             line_pos += 1;
@@ -243,7 +243,7 @@ impl Game {
 
             line.push('#');
             tb::print(self.grid_pos.0, self.grid_pos.1 + line_pos,
-                      Style::Normal, Color::White, Color::Black, line.as_slice());
+                      Style::Normal, Color::Default, Color::Default, line.as_slice());
         }
 
         line_pos += 1;
@@ -255,7 +255,7 @@ impl Game {
         }
         line.push('#');
         tb::print(self.grid_pos.0, self.grid_pos.1 + line_pos,
-                  Style::Normal, Color::White, Color::Black, line.as_slice());
+                  Style::Normal, Color::Default, Color::Default, line.as_slice());
     }
 
     fn draw_actions(&self) {
