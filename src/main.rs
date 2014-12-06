@@ -103,26 +103,70 @@ impl Game {
         self.cursor_pos = (0, 0);
     }
 
+    fn move_cursor_up(&mut self) {
+        if self.cursor_pos.1 > 0 {
+            self.cursor_pos.1 -= 1;
+        }
+    }
+
+    fn move_cursor_down(&mut self) {
+        if self.cursor_pos.1 < self.grid.height() as uint - 1 {
+            self.cursor_pos.1 += 1;
+        }
+    }
+
+    fn move_cursor_left(&mut self) {
+        if self.cursor_pos.0 > 0 {
+            self.cursor_pos.0 -= 1;
+        }
+    }
+
+    fn move_cursor_right(&mut self) {
+        if self.cursor_pos.0 < self.grid.width() as uint  - 1 {
+            self.cursor_pos.0 += 1;
+        }
+    }
+
     fn update(&mut self) {
+        match self.state {
+            GameState::Play => self.play_update(),
+            //Lose => self.lose_update(),
+            //Win => self.win_update(),
+            //New => self.new_update(),
+            //Quit => {},
+            _ => {
+                println!("State {} not implemented!", self.state);
+                self.state = GameState::Quit
+            },
+        }
+    }
+
+    fn play_update(&mut self) {
         match tb::poll_event() {
             Event::KeyEvent(_, key, ch) => {
                 match (key, ch) {
-                    (_, Some('q')) => self.state = GameState::Quit,
+                    (Some(Key::Space), _) => {
+                        self.grid.reveal(self.cursor_pos.0 as u32,
+                                         self.cursor_pos.1 as u32);
+                        match self.grid.state() {
+                            GridState::Play => {},
+                            GridState::Win => self.state = GameState::Win,
+                            GridState::Lose => self.state = GameState::Lose,
+                        }
+                    },
                     (_, Some('f')) => self.grid.toggle_flag(
                         self.cursor_pos.0 as u32, self.cursor_pos.1 as u32),
-                    (Some(Key::Space), _) => self.grid.reveal(
-                        self.cursor_pos.0 as u32, self.cursor_pos.1 as u32),
+                    (Some(Key::ArrowUp), _) => self.move_cursor_up(),
+                    (Some(Key::ArrowDown), _) => self.move_cursor_down(),
+                    (Some(Key::ArrowLeft), _) => self.move_cursor_left(),
+                    (Some(Key::ArrowRight), _) => self.move_cursor_right(),
+                    (_, Some('n')) => self.state = GameState::New,
+                    (_, Some('q')) => self.state = GameState::Quit,
                     _ => return,
                 }
             },
             _ => return,
         }
-        //let action = action_funcs[game.state][tb::poll_event()];
-        //if let Some(act) {
-        //    let next_state = act();
-        //    clear = next_state != game.state;
-        //    game.state = next_state;
-        //}
     }
 
     fn display(&self) {
