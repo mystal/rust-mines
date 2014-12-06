@@ -128,7 +128,7 @@ impl Game {
     fn update(&mut self) {
         match self.state {
             GameState::Play => self.play_update(),
-            //Lose => self.lose_update(),
+            GameState::Lose => self.lose_update(),
             //Win => self.win_update(),
             //New => self.new_update(),
             //Quit => {},
@@ -158,6 +158,19 @@ impl Game {
                     (Some(Key::ArrowDown), _) => self.move_cursor_down(),
                     (Some(Key::ArrowLeft), _) => self.move_cursor_left(),
                     (Some(Key::ArrowRight), _) => self.move_cursor_right(),
+                    (_, Some('n')) => self.state = GameState::New,
+                    (_, Some('q')) => self.state = GameState::Quit,
+                    _ => return,
+                }
+            },
+            _ => return,
+        }
+    }
+
+    fn lose_update(&mut self) {
+        match tb::poll_event() {
+            Event::KeyEvent(_, key, ch) => {
+                match (key, ch) {
                     (_, Some('n')) => self.state = GameState::New,
                     (_, Some('q')) => self.state = GameState::Quit,
                     _ => return,
