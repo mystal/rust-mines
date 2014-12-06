@@ -29,6 +29,37 @@ enum Difficulty {
     Hard,
 }
 
+static ACTION_STRINGS: &'static [&'static [&'static str]] = &[
+    // GameState::Play
+    &[
+        "Space: reveal",
+        "f: flag",
+        "Arrow keys: move",
+        "",
+        "n: new game",
+        "q: quit",
+    ],
+    // GameState::Lose
+    &[
+        "n: new game",
+        "q: quit",
+    ],
+    // GameState::Win
+    &[
+        "n: new game",
+        "q: quit",
+    ],
+    // GameState::New
+    &[
+        "e: easy",
+        "m: medium",
+        "h: hard",
+        "",
+        "c: cancel",
+        "q: quit",
+    ],
+];
+
 struct Game {
     grid: MineGrid,
     grid_pos: (uint, uint),
@@ -104,7 +135,7 @@ impl Game {
         tb::print(0, 0, Style::Bold, Color::Default, Color::Default,
                   "Minesweeper");
 
-        // TODO: draw actions
+        self.draw_actions();
 
         // Mine counter
         tb::print(self.mines_pos.0, self.mines_pos.1,
@@ -173,6 +204,13 @@ impl Game {
         line.push('#');
         tb::print(self.grid_pos.0, self.grid_pos.1 + line_pos,
                   Style::Normal, Color::White, Color::Black, line.as_slice());
+    }
+
+    fn draw_actions(&self) {
+        for (i, text) in ACTION_STRINGS[self.state as uint].iter().enumerate() {
+            tb::print(self.actions_pos.0, self.actions_pos.1 + i,
+                      Style::Normal, Color::Default, Color::Default, *text);
+        }
     }
 
     fn draw_status(&self) {
