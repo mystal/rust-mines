@@ -165,7 +165,7 @@ impl MineGrid {
     }
 
     pub fn toggle_flag(&mut self, x: u32, y: u32) {
-        if !self.check_point(x, y) {
+        if !self.check_point(x, y) || self.cells[y as uint][x as uint].revealed {
             return;
         }
 
