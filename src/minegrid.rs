@@ -183,17 +183,19 @@ impl MineGrid {
             return;
         }
 
-        if self.cells[y as uint][x as uint].flags != 0 {
+        let cell = self.cells[y as uint][x as uint];
+
+        if cell.flags != 0 {
             return;
         }
 
-        if self.cells[y as uint][x as uint].revealed {
+        if cell.revealed {
             // TODO: if flags match surrounding mines, reveal surrounding cells
             return;
         }
 
         self.cells[y as uint][x as uint].revealed = true;
-        if self.cells[y as uint][x as uint].mines != 0 {
+        if cell.mines != 0 {
             self.state = GridState::Lose;
             return;
         }
@@ -204,7 +206,7 @@ impl MineGrid {
             return;
         }
 
-        if self.cells[y as uint][x as uint].surrounding_mines == 0 {
+        if cell.surrounding_mines == 0 {
             let neighbors = self.get_neighbors(x, y);
             for cell in neighbors.iter() {
                 self.reveal(cell.x, cell.y);
