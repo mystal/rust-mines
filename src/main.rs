@@ -67,7 +67,7 @@ struct Game {
     status_pos: (uint, uint),
     mines_pos: (uint, uint),
     cursor_pos: (uint, uint),
-    grid_changed: bool,
+    //grid_changed: bool,
     state: GameState,
 }
 
@@ -80,7 +80,7 @@ impl Game {
             status_pos: (0, 0),
             mines_pos: (0, 0),
             cursor_pos: (0, 0),
-            grid_changed: false,
+            //grid_changed: false,
             state: GameState::Play,
         };
 
@@ -243,7 +243,7 @@ impl Game {
         let mut line = String::with_capacity(self.grid.width() as uint + 2);
 
         line.push('#');
-        for i in range(0, self.grid.width()) {
+        for _ in range(0, self.grid.width()) {
             line.push('#');
         }
         line.push('#');
@@ -280,7 +280,7 @@ impl Game {
         line.clear();
 
         line.push('#');
-        for i in range(0, self.grid.width()) {
+        for _ in range(0, self.grid.width()) {
             line.push('#');
         }
         line.push('#');
