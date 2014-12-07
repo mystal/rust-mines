@@ -99,6 +99,7 @@ impl Game {
         self.status_pos = (0, self.grid_pos.1 + self.grid.height() as uint + 3);
         self.mines_pos = (self.grid_pos.0 + self.grid.width() as uint / 2, 0);
         self.cursor_pos = (0, 0);
+        self.state = GameState::Play;
     }
 
     fn move_cursor_up(&mut self) {
@@ -129,13 +130,9 @@ impl Game {
         match self.state {
             GameState::Play => self.play_update(),
             GameState::Lose => self.lose_update(),
-            //Win => self.win_update(),
-            //New => self.new_update(),
-            //Quit => {},
-            _ => {
-                println!("State {} not implemented!", self.state);
-                self.state = GameState::Quit
-            },
+            GameState::Win => self.win_update(),
+            GameState::New => self.new_update(),
+            GameState::Quit => {},
         }
     }
 
@@ -172,6 +169,39 @@ impl Game {
             Event::KeyEvent(_, key, ch) => {
                 match (key, ch) {
                     (_, Some('n')) => self.state = GameState::New,
+                    (_, Some('q')) => self.state = GameState::Quit,
+                    _ => return,
+                }
+            },
+            _ => return,
+        }
+    }
+
+    fn win_update(&mut self) {
+        match tb::poll_event() {
+            Event::KeyEvent(_, key, ch) => {
+                match (key, ch) {
+                    (_, Some('n')) => self.state = GameState::New,
+                    (_, Some('q')) => self.state = GameState::Quit,
+                    _ => return,
+                }
+            },
+            _ => return,
+        }
+    }
+
+    fn new_update(&mut self) {
+        match tb::poll_event() {
+            Event::KeyEvent(_, key, ch) => {
+                match (key, ch) {
+                    (_, Some('e')) => self.reset(Difficulty::Easy),
+                    (_, Some('m')) => self.reset(Difficulty::Medium),
+                    (_, Some('h')) => self.reset(Difficulty::Hard),
+                    (_, Some('c')) => self.state = match self.grid.state() {
+                        GridState::Play => GameState::Play,
+                        GridState::Lose => GameState::Lose,
+                        GridState::Win => GameState::Win,
+                    },
                     (_, Some('q')) => self.state = GameState::Quit,
                     _ => return,
                 }
