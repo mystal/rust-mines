@@ -1,5 +1,3 @@
-#![feature(if_let, tuple_indexing)]
-
 extern crate termbox;
 
 use minegrid::GridState;
@@ -27,6 +25,7 @@ enum Difficulty {
     Easy,
     Medium,
     Hard,
+    //Custom(u32, u32, u32),
 }
 
 static ACTION_STRINGS: &'static [&'static [&'static str]] = &[
@@ -94,6 +93,8 @@ impl Game {
             Difficulty::Easy => self.grid = MineGrid::new(9, 9, 10),
             Difficulty::Medium => self.grid = MineGrid::new(16, 16, 40),
             Difficulty::Hard => self.grid = MineGrid::new(40, 16, 99),
+            //Difficulty::Custom(width, height, mines) =>
+            //    self.grid = MineGrid::new(width, height, mines),
         }
 
         self.status_pos = (0, self.grid_pos.1 + self.grid.height() as uint + 3);
