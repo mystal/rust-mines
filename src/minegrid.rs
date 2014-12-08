@@ -190,7 +190,19 @@ impl MineGrid {
         }
 
         if cell.revealed {
-            // TODO: if flags match surrounding mines, reveal surrounding cells
+            if cell.surrounding_mines == 0 {
+                return;
+            }
+            let flags = self.count_surrounding_flags(x, y);
+            if cell.surrounding_mines != flags {
+                return;
+            }
+            let neighbors = self.get_neighbors(x, y);
+            for n in neighbors.iter() {
+                if !n.revealed {
+                    self.reveal(n.x, n.y);
+                }
+            }
             return;
         }
 
@@ -208,8 +220,8 @@ impl MineGrid {
 
         if cell.surrounding_mines == 0 {
             let neighbors = self.get_neighbors(x, y);
-            for cell in neighbors.iter() {
-                self.reveal(cell.x, cell.y);
+            for n in neighbors.iter() {
+                self.reveal(n.x, n.y);
             }
         }
     }
