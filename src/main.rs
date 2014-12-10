@@ -4,6 +4,8 @@ use minegrid::GridState;
 use minegrid::MineGrid;
 use termbox as tb;
 use termbox::{
+    Attribute,
+    Cell,
     Color,
     Event,
     Key,
@@ -215,15 +217,30 @@ impl Game {
         tb::clear();
 
         // Title
-        tb::print(0, 0, Style::Bold, Color::Default, Color::Default,
-                  "Minesweeper");
+        let fg = Attribute {
+            color: Color::Default,
+            style: Style::Bold,
+        };
+        let bg = Attribute {
+            color: Color::Default,
+            style: Style::Normal,
+        };
+        tb::print_string_styled(0, 0, fg, bg, "Minesweeper");
 
         self.draw_actions();
 
         // Mine counter
-        tb::print(self.mines_pos.0, self.mines_pos.1,
-                  Style::Bold, Color::Red, Color::White,
-                  format!("{:02}", self.grid.mines_left()).as_slice());
+        let fg = Attribute {
+            color: Color::Red,
+            style: Style::Bold,
+        };
+        let bg = Attribute {
+            color: Color::White,
+            style: Style::Normal,
+        };
+        tb::print_string_styled(
+            self.mines_pos.0, self.mines_pos.1, fg, bg,
+            format!("{:02}", self.grid.mines_left()).as_slice());
 
         self.draw_grid();
 
@@ -240,59 +257,138 @@ impl Game {
     }
 
     fn draw_grid(&self) {
-        let mut line_pos = 0;
-        let mut line = String::with_capacity(self.grid.width() as uint + 2);
+        let border_cell = Cell {
+            ch: '#',
+            fg: Attribute {
+                color: Color::Default,
+                style: Style::Normal,
+            },
+            bg: Attribute {
+                color: Color::Default,
+                style: Style::Normal,
+            },
+        };
+        let flag_cell = Cell {
+            ch: 'F',
+            fg: Attribute {
+                color: Color::Red,
+                style: Style::Bold,
+            },
+            bg: Attribute {
+                color: Color::Blue,
+                style: Style::Normal,
+            },
+        };
+        let mine_cell = Cell {
+            ch: '*',
+            fg: Attribute {
+                color: Color::Red,
+                style: Style::Bold,
+            },
+            bg: Attribute {
+                color: Color::Default,
+                style: Style::Normal,
+            },
+        };
+        let hidden_cell = Cell {
+            ch: ' ',
+            fg: Attribute {
+                color: Color::Default,
+                style: Style::Normal,
+            },
+            bg: Attribute {
+                color: Color::Blue,
+                style: Style::Normal,
+            },
+        };
+        let revealed_cell = Cell {
+            ch: ' ',
+            fg: Attribute {
+                color: Color::Default,
+                style: Style::Normal,
+            },
+            bg: Attribute {
+                color: Color::Default,
+                style: Style::Normal,
+            },
+        };
 
-        line.push('#');
+        let mut line_pos = 0;
+        let mut line = Vec::with_capacity(self.grid.width() as uint + 2);
+
+        line.push(border_cell);
         for _ in range(0, self.grid.width()) {
-            line.push('#');
+            line.push(border_cell);
         }
-        line.push('#');
-        tb::print(self.grid_pos.0, self.grid_pos.1 + line_pos,
-                  Style::Normal, Color::Default, Color::Default, line.as_slice());
+        line.push(border_cell);
+        tb::print_cells(self.grid_pos.0, self.grid_pos.1 + line_pos,
+                        line.as_slice());
 
         for j in range(0, self.grid.height()) {
             line_pos += 1;
             line.clear();
 
-            line.push('#');
+            line.push(border_cell);
             for i in range(0, self.grid.width()) {
                 let cell = self.grid.get_cell(i, j).unwrap();
-                let surrounding_mines_string = cell.surrounding_mines().to_string();
-                line.push_str(if cell.flags() != 0 {
-                    "F"
+                line.push(if cell.flags() != 0 {
+                    flag_cell
                 } else if !cell.revealed() {
-                    "-"
+                    hidden_cell
                 } else if cell.mines() != 0 {
-                    "*"
+                    mine_cell
                 } else if cell.surrounding_mines() != 0 {
-                    surrounding_mines_string.as_slice()
+                    self.mine_cell_format(cell.surrounding_mines())
                 } else {
-                    " "
+                    revealed_cell
                 });
             }
+            line.push(border_cell);
 
-            line.push('#');
-            tb::print(self.grid_pos.0, self.grid_pos.1 + line_pos,
-                      Style::Normal, Color::Default, Color::Default, line.as_slice());
+            tb::print_cells(self.grid_pos.0, self.grid_pos.1 + line_pos,
+                            line.as_slice());
         }
 
         line_pos += 1;
         line.clear();
 
-        line.push('#');
+        line.push(border_cell);
         for _ in range(0, self.grid.width()) {
-            line.push('#');
+            line.push(border_cell);
         }
-        line.push('#');
-        tb::print(self.grid_pos.0, self.grid_pos.1 + line_pos,
-                  Style::Normal, Color::Default, Color::Default, line.as_slice());
+        line.push(border_cell);
+        tb::print_cells(self.grid_pos.0, self.grid_pos.1 + line_pos,
+                        line.as_slice());
+    }
+
+    fn mine_cell_format(&self, mines: u8) -> Cell {
+        let colors = match mines {
+            1 => (Color::Blue, Color::Default),
+            2 => (Color::Green, Color::Default),
+            3 => (Color::Red, Color::Default),
+            4 => (Color::Yellow, Color::Default),
+            5 => (Color::Magenta, Color::Default),
+            6 => (Color::Cyan, Color::Default),
+            7 => (Color::White, Color::Cyan),
+            8 => (Color::White, Color::Magenta),
+            _ => (Color::Default, Color::Default),
+        };
+        Cell {
+            ch: mines.to_string().as_slice().char_at(0),
+            fg: Attribute {
+                color: colors.0,
+                style: Style::Normal,
+            },
+            bg: Attribute {
+                color: colors.1,
+                style: Style::Normal,
+            }
+        }
     }
 
     fn draw_actions(&self) {
         for (i, text) in ACTION_STRINGS[self.state as uint].iter().enumerate() {
-            tb::print(self.actions_pos.0, self.actions_pos.1 + i,
-                      Style::Normal, Color::Default, Color::Default, *text);
+            tb::print_string(self.actions_pos.0, self.actions_pos.1 + i, *text);
         }
     }
 
@@ -304,9 +400,8 @@ impl Game {
             GameState::New => "Choose a difficulty",
             _ => "",
         };
-        tb::print(self.status_pos.0, self.status_pos.1,
-                  Style::Normal, Color::Default, Color::Default,
-                  status.as_slice());
+        tb::print_string(self.status_pos.0, self.status_pos.1,
+                         status.as_slice());
     }
 }
 

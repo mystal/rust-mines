@@ -2,11 +2,19 @@
 name = "rust-mines"
 version = "0.0.1"
 dependencies = [
- "termbox 0.0.0-alpha (git+https://github.com/mystal/rust-termbox.git?ref=dev)",
+ "termbox 0.0.0-alpha (git+https://github.com/mystal/rust-termbox.git?ref=update)",
 ]
 
 [[package]]
 name = "termbox"
 version = "0.0.0-alpha"
-source = "git+https://github.com/mystal/rust-termbox.git?ref=dev#4ae6133efb9896b533eb6702599626cf4c253542"
+source = "git+https://github.com/mystal/rust-termbox.git?ref=update#d49075c17a5ced9e87cc3810d46ad86321d5d7e5"
+dependencies = [
+ "termbox_sys 0.0.0-alpha (git+https://github.com/mystal/rust-termbox.git?ref=update)",
+]
+
+[[package]]
+name = "termbox_sys"
+version = "0.0.0-alpha"
+source = "git+https://github.com/mystal/rust-termbox.git?ref=update#d49075c17a5ced9e87cc3810d46ad86321d5d7e5"
 
