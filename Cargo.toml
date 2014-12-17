@@ -7,4 +7,3 @@ authors = ["Gabriel Martinez <reitaka@gmail.com>"]
 [dependencies.termbox]
 
 git = "https://github.com/mystal/rust-termbox.git"
-rev = "update"
