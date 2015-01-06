@@ -8,7 +8,7 @@ dependencies = [
 [[package]]
 name = "termbox"
 version = "0.0.0-alpha"
-source = "git+https://github.com/mystal/rust-termbox.git#d2a11b0145fea07f4fd40cbefdee56937e5c6621"
+source = "git+https://github.com/mystal/rust-termbox.git#88bf0c0fc03b01241ffe8d074dbf97eda3b9d828"
 dependencies = [
  "termbox_sys 0.0.0-alpha (git+https://github.com/mystal/rust-termbox.git)",
 ]
@@ -16,5 +16,5 @@ dependencies = [
 [[package]]
 name = "termbox_sys"
 version = "0.0.0-alpha"
-source = "git+https://github.com/mystal/rust-termbox.git#d2a11b0145fea07f4fd40cbefdee56937e5c6621"
+source = "git+https://github.com/mystal/rust-termbox.git#88bf0c0fc03b01241ffe8d074dbf97eda3b9d828"
 

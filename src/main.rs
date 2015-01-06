@@ -14,7 +14,7 @@ use termbox::{
 
 mod minegrid;
 
-#[deriving(PartialEq, Show, Copy)]
+#[derive(PartialEq, Show, Copy)]
 enum GameState {
     Play,
     Lose,

@@ -2,7 +2,7 @@ use std::collections::HashSet;
 use std::rand;
 use std::rand::Rng;
 
-#[deriving(Copy)]
+#[derive(Copy)]
 pub struct Cell {
     x: u32,
     y: u32,
@@ -12,7 +12,7 @@ pub struct Cell {
     surrounding_mines: u8,
 }
 
-#[deriving(PartialEq, Show, Copy)]
+#[derive(PartialEq, Show, Copy)]
 pub enum GridState {
     Play,
     Win,
@@ -54,7 +54,7 @@ impl MineGrid {
         let mut cells = Vec::with_capacity(height as uint);
 
         // Randomly place mines
-        let mut rng = rand::task_rng();
+        let mut rng = rand::thread_rng();
         let mut mine_points = HashSet::new();
         while mine_points.len() != mines as uint {
             let point = (rng.gen_range(0, width),
