@@ -2,19 +2,48 @@
 name = "rust-mines"
 version = "0.0.1"
 dependencies = [
+ "rand 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "termbox 0.0.0-alpha (git+https://github.com/mystal/rust-termbox.git)",
+]
+
+[[package]]
+name = "bitflags"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "libc"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "log"
+version = "0.2.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "rand"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "libc 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "log 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "termbox"
 version = "0.0.0-alpha"
-source = "git+https://github.com/mystal/rust-termbox.git#88bf0c0fc03b01241ffe8d074dbf97eda3b9d828"
+source = "git+https://github.com/mystal/rust-termbox.git#7991c36d0d4d1761676547d150e13ab37748d96d"
 dependencies = [
+ "log 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "termbox_sys 0.0.0-alpha (git+https://github.com/mystal/rust-termbox.git)",
 ]
 
 [[package]]
 name = "termbox_sys"
 version = "0.0.0-alpha"
-source = "git+https://github.com/mystal/rust-termbox.git#88bf0c0fc03b01241ffe8d074dbf97eda3b9d828"
+source = "git+https://github.com/mystal/rust-termbox.git#7991c36d0d4d1761676547d150e13ab37748d96d"
+dependencies = [
+ "bitflags 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 

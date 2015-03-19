@@ -1,3 +1,6 @@
+#![feature(collections)]
+
+extern crate rand;
 extern crate termbox;
 
 use minegrid::GridState;
@@ -14,7 +17,7 @@ use termbox::{
 
 mod minegrid;
 
-#[derive(PartialEq, Show, Copy)]
+#[derive(PartialEq, Debug, Copy)]
 enum GameState {
     Play,
     Lose,
@@ -63,11 +66,11 @@ static ACTION_STRINGS: &'static [&'static [&'static str]] = &[
 
 struct Game {
     grid: MineGrid,
-    grid_pos: (uint, uint),
-    actions_pos: (uint, uint),
-    status_pos: (uint, uint),
-    mines_pos: (uint, uint),
-    cursor_pos: (uint, uint),
+    grid_pos: (u32, u32),
+    actions_pos: (u32, u32),
+    status_pos: (u32, u32),
+    mines_pos: (u32, u32),
+    cursor_pos: (u32, u32),
     //grid_changed: bool,
     state: GameState,
 }
@@ -99,8 +102,8 @@ impl Game {
             //    self.grid = MineGrid::new(width, height, mines),
         }
 
-        self.status_pos = (0, self.grid_pos.1 + self.grid.height() as uint + 3);
-        self.mines_pos = (self.grid_pos.0 + self.grid.width() as uint / 2, 0);
+        self.status_pos = (0, self.grid_pos.1 + self.grid.height() + 3);
+        self.mines_pos = (self.grid_pos.0 + self.grid.width() / 2, 0);
         self.cursor_pos = (0, 0);
         self.state = GameState::Play;
     }
@@ -112,7 +115,7 @@ impl Game {
     }
 
     fn move_cursor_down(&mut self) {
-        if self.cursor_pos.1 < self.grid.height() as uint - 1 {
+        if self.cursor_pos.1 < self.grid.height() - 1 {
             self.cursor_pos.1 += 1;
         }
     }
@@ -124,7 +127,7 @@ impl Game {
     }
 
     fn move_cursor_right(&mut self) {
-        if self.cursor_pos.0 < self.grid.width() as uint  - 1 {
+        if self.cursor_pos.0 < self.grid.width() - 1 {
             self.cursor_pos.0 += 1;
         }
     }
@@ -240,7 +243,7 @@ impl Game {
         };
         tb::print_string_styled(
             self.mines_pos.0, self.mines_pos.1, fg, bg,
-            format!("{:02}", self.grid.mines_left()).as_slice());
+            &format!("{:02}", self.grid.mines_left()));
 
         self.draw_grid();
 
@@ -314,22 +317,21 @@ impl Game {
         };
 
         let mut line_pos = 0;
-        let mut line = Vec::with_capacity(self.grid.width() as uint + 2);
+        let mut line = Vec::with_capacity(self.grid.width() as usize + 2);
 
         line.push(border_cell);
-        for _ in range(0, self.grid.width()) {
+        for _ in 0..self.grid.width() {
             line.push(border_cell);
         }
         line.push(border_cell);
-        tb::print_cells(self.grid_pos.0, self.grid_pos.1 + line_pos,
-                        line.as_slice());
+        tb::print_cells(self.grid_pos.0, self.grid_pos.1 + line_pos, &line);
 
-        for j in range(0, self.grid.height()) {
+        for j in 0..self.grid.height() {
             line_pos += 1;
             line.clear();
 
             line.push(border_cell);
-            for i in range(0, self.grid.width()) {
+            for i in 0..self.grid.width() {
                 let cell = self.grid.get_cell(i, j).unwrap();
                 line.push(if cell.flags() != 0 {
                     flag_cell
@@ -345,20 +347,18 @@ impl Game {
             }
             line.push(border_cell);
 
-            tb::print_cells(self.grid_pos.0, self.grid_pos.1 + line_pos,
-                            line.as_slice());
+            tb::print_cells(self.grid_pos.0, self.grid_pos.1 + line_pos, &line);
         }
 
         line_pos += 1;
         line.clear();
 
         line.push(border_cell);
-        for _ in range(0, self.grid.width()) {
+        for _ in 0..self.grid.width() {
             line.push(border_cell);
         }
         line.push(border_cell);
-        tb::print_cells(self.grid_pos.0, self.grid_pos.1 + line_pos,
-                        line.as_slice());
+        tb::print_cells(self.grid_pos.0, self.grid_pos.1 + line_pos, &line);
     }
 
     fn mine_cell_format(&self, mines: u8) -> Cell {
@@ -374,7 +374,7 @@ impl Game {
             _ => (Color::Default, Color::Default),
         };
         Cell {
-            ch: mines.to_string().as_slice().char_at(0),
+            ch: mines.to_string().char_at(0),
             fg: Attribute {
                 color: colors.0,
                 style: Style::Normal,
@@ -387,8 +387,8 @@ impl Game {
     }
 
     fn draw_actions(&self) {
-        for (i, text) in ACTION_STRINGS[self.state as uint].iter().enumerate() {
-            tb::print_string(self.actions_pos.0, self.actions_pos.1 + i, *text);
+        for (i, text) in ACTION_STRINGS[self.state as usize].iter().enumerate() {
+            tb::print_string(self.actions_pos.0, self.actions_pos.1 + i as u32, text);
         }
     }
 
@@ -400,8 +400,7 @@ impl Game {
             GameState::New => "Choose a difficulty",
             _ => "",
         };
-        tb::print_string(self.status_pos.0, self.status_pos.1,
-                         status.as_slice());
+        tb::print_string(self.status_pos.0, self.status_pos.1, &status);
     }
 }
 

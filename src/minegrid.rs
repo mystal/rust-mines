@@ -1,6 +1,6 @@
 use std::collections::HashSet;
-use std::rand;
-use std::rand::Rng;
+use rand;
+use rand::Rng;
 
 #[derive(Copy)]
 pub struct Cell {
@@ -12,7 +12,7 @@ pub struct Cell {
     surrounding_mines: u8,
 }
 
-#[derive(PartialEq, Show, Copy)]
+#[derive(PartialEq, Debug, Copy)]
 pub enum GridState {
     Play,
     Win,
@@ -51,20 +51,20 @@ impl Cell {
 
 impl MineGrid {
     pub fn new(width: u32, height: u32, mines: u32) -> MineGrid {
-        let mut cells = Vec::with_capacity(height as uint);
+        let mut cells = Vec::with_capacity(height as usize);
 
         // Randomly place mines
         let mut rng = rand::thread_rng();
         let mut mine_points = HashSet::new();
-        while mine_points.len() != mines as uint {
+        while mine_points.len() != mines as usize {
             let point = (rng.gen_range(0, width),
                          rng.gen_range(0, height));
             mine_points.insert(point);
         }
 
-        for j in range(0, height) {
-            let mut row = Vec::with_capacity(width as uint);
-            for i in range(0, width) {
+        for j in 0..height {
+            let mut row = Vec::with_capacity(width as usize);
+            for i in 0..width {
                 row.push(Cell {
                     x: i,
                     y: j,
@@ -89,9 +89,9 @@ impl MineGrid {
         };
 
         // Count surrounding mines
-        for j in range(0, height) {
-            for i in range(0, width) {
-                grid.cells[j as uint][i as uint].surrounding_mines =
+        for j in 0..height {
+            for i in 0..width {
+                grid.cells[j as usize][i as usize].surrounding_mines =
                     grid.count_surrounding_mines(i, j);
             }
         }
@@ -128,7 +128,7 @@ impl MineGrid {
 
     pub fn get_cell(&self, x: u32, y: u32) -> Option<Cell> {
         if self.check_point(x, y) {
-            Some(self.cells[y as uint][x as uint])
+            Some(self.cells[y as usize][x as usize])
         } else {
             None
         }
@@ -136,8 +136,8 @@ impl MineGrid {
 
     pub fn get_neighbors(&self, x: u32, y: u32) -> Vec<Cell> {
         let mut neighbors = Vec::with_capacity(8);
-        for j in range(-1, 2i32) {
-            for i in range(-1, 2i32) {
+        for j in -1..2i32 {
+            for i in -1..2i32 {
                 if i != 0 || j != 0 {
                     if let Some(cell) = self.get_cell((x as i32 + i) as u32,
                                                       (y as i32 + j) as u32) {
@@ -166,16 +166,16 @@ impl MineGrid {
     }
 
     pub fn toggle_flag(&mut self, x: u32, y: u32) {
-        if !self.check_point(x, y) || self.cells[y as uint][x as uint].revealed {
+        if !self.check_point(x, y) || self.cells[y as usize][x as usize].revealed {
             return;
         }
 
-        if self.cells[y as uint][x as uint].flags == self.max_mines {
+        if self.cells[y as usize][x as usize].flags == self.max_mines {
             self.mines_flagged -= self.max_mines as u32;
-            self.cells[y as uint][x as uint].flags = 0;
+            self.cells[y as usize][x as usize].flags = 0;
         } else {
             self.mines_flagged += 1;
-            self.cells[y as uint][x as uint].flags += 1;
+            self.cells[y as usize][x as usize].flags += 1;
         }
     }
 
@@ -184,7 +184,7 @@ impl MineGrid {
             return;
         }
 
-        let cell = self.cells[y as uint][x as uint];
+        let cell = self.cells[y as usize][x as usize];
 
         if cell.flags != 0 {
             return;
@@ -207,7 +207,7 @@ impl MineGrid {
             return;
         }
 
-        self.cells[y as uint][x as uint].revealed = true;
+        self.cells[y as usize][x as usize].revealed = true;
         if cell.mines != 0 {
             self.state = GridState::Lose;
             return;
@@ -240,8 +240,8 @@ mod minegrid_test {
         let grid = MineGrid::new(width, height, mines);
 
         let mut mine_count = 0;
-        for j in range(0, height) {
-            for i in range(0, width) {
+        for j in 0..height {
+            for i in 0..width {
                 mine_count += grid.get_cell(i, j).unwrap().mines() as u32;
             }
         }
@@ -297,8 +297,8 @@ mod minegrid_test {
         assert_eq!(false, grid.get_cell(0, 0).unwrap().revealed());
         assert_eq!(GridState::Play, grid.state());
         grid.reveal(0, 0);
-        for j in range(0, height) {
-            for i in range(0, width) {
+        for j in 0..height {
+            for i in 0..width {
                 assert_eq!(true, grid.get_cell(i, j).unwrap().revealed());
             }
         }
