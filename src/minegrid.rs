@@ -1,8 +1,8 @@
 use std::collections::HashSet;
-use rand;
-use rand::Rng;
 
-#[derive(Copy)]
+use rand::{self, Rng};
+
+#[derive(Clone, Copy)]
 pub struct Cell {
     x: u32,
     y: u32,
@@ -12,7 +12,7 @@ pub struct Cell {
     surrounding_mines: u8,
 }
 
-#[derive(PartialEq, Debug, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum GridState {
     Play,
     Win,

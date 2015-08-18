@@ -7,7 +7,4 @@ authors = ["Gabriel Martinez <reitaka@gmail.com>"]
 [dependencies]
 
 rand = "*"
-
-[dependencies.termbox]
-
-git = "https://github.com/mystal/rust-termbox.git"
+rustbox = "*"
