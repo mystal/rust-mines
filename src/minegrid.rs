@@ -261,7 +261,6 @@ mod minegrid_test {
 
         assert_eq!(true, grid.check_point(0, 0));
         assert_eq!(true, grid.check_point(1, 0));
-        assert_eq!(false, grid.check_point(-1, 0));
         assert_eq!(true, grid.check_point(9, 9));
         assert_eq!(false, grid.check_point(10, 0));
     }
