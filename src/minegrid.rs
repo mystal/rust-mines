@@ -151,7 +151,7 @@ impl MineGrid {
 
     fn count_surrounding_mines(&self, x: u32, y: u32) -> u8 {
         let mut mines = 0;
-        for n in self.get_neighbors(x, y).iter() {
+        for n in &self.get_neighbors(x, y) {
             mines += n.mines;
         }
         mines
@@ -159,7 +159,7 @@ impl MineGrid {
 
     fn count_surrounding_flags(&self, x: u32, y: u32) -> u8 {
         let mut flags = 0;
-        for n in self.get_neighbors(x, y).iter() {
+        for n in &self.get_neighbors(x, y) {
             flags += n.flags;
         }
         flags
@@ -198,8 +198,7 @@ impl MineGrid {
             if cell.surrounding_mines != flags {
                 return;
             }
-            let neighbors = self.get_neighbors(x, y);
-            for n in neighbors.iter() {
+            for n in &self.get_neighbors(x, y) {
                 if !n.revealed {
                     self.reveal(n.x, n.y);
                 }
@@ -220,8 +219,7 @@ impl MineGrid {
         }
 
         if cell.surrounding_mines == 0 {
-            let neighbors = self.get_neighbors(x, y);
-            for n in neighbors.iter() {
+            for n in &self.get_neighbors(x, y) {
                 self.reveal(n.x, n.y);
             }
         }

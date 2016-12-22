@@ -10,11 +10,44 @@ use rustbox::{
     RustBox,
 };
 
-use rustbox_cell::{Cell, print_cells};
+use rustbox_cell::{Cell, print_cell_repeated_x, print_cell_repeated_y};
 use minegrid::{GridState, MineGrid};
 
 mod minegrid;
 mod rustbox_cell;
+
+
+const BORDER_CELL: Cell = Cell {
+    ch: '#',
+    style: rustbox::RB_NORMAL,
+    fg: Color::Default,
+    bg: Color::Default,
+};
+const FLAG_CELL: Cell = Cell {
+    ch: 'F',
+    style: rustbox::RB_BOLD,
+    fg: Color::Red,
+    bg: Color::Blue,
+};
+const MINE_CELL: Cell = Cell {
+    ch: '*',
+    style: rustbox::RB_BOLD,
+    fg: Color::Red,
+    bg: Color::Default,
+};
+const HIDDEN_CELL: Cell = Cell {
+    ch: ' ',
+    style: rustbox::RB_NORMAL,
+    fg: Color::Default,
+    bg: Color::Blue,
+};
+const REVEALED_CELL: Cell = Cell {
+    ch: ' ',
+    style: rustbox::RB_NORMAL,
+    fg: Color::Default,
+    bg: Color::Default,
+};
+
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum GameState {
@@ -62,6 +95,79 @@ static ACTION_STRINGS: &'static [&'static [&'static str]] = &[
         "q: quit",
     ],
 ];
+
+fn format_mine_cell(mines: u8) -> Cell {
+    let (ch, fg, bg) = match mines {
+        1 => ('1', Color::Blue, Color::Default),
+        2 => ('2', Color::Green, Color::Default),
+        3 => ('3', Color::Red, Color::Default),
+        4 => ('4', Color::Yellow, Color::Default),
+        5 => ('5', Color::Magenta, Color::Default),
+        6 => ('6', Color::Cyan, Color::Default),
+        7 => ('7', Color::White, Color::Cyan),
+        8 => ('8', Color::White, Color::Magenta),
+        _ => panic!("Unexpected number of surrounding mines: {}!", mines),
+    };
+
+    Cell {
+        ch: ch,
+        style: rustbox::RB_NORMAL,
+        fg: fg,
+        bg: bg,
+    }
+}
+
+struct CellRenderer<'a> {
+    grid: &'a MineGrid,
+    x: u32,
+    y: u32,
+}
+
+impl<'a> CellRenderer<'a> {
+    fn new(grid: &'a MineGrid) -> Self {
+        CellRenderer {
+            grid: grid,
+            x: 0,
+            y: 0,
+        }
+    }
+}
+
+impl<'a> Iterator for CellRenderer<'a> {
+    type Item = (u32, u32, Cell);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.y >= self.grid.height() {
+            return None;
+        }
+
+        let cell = match self.grid.get_cell(self.x, self.y) {
+            Some(c) => c,
+            None => panic!("CellRenderer: Could not get cell at ({}, {})!", self.x, self.y),
+        };
+        let cell = if cell.flags() != 0 {
+            FLAG_CELL
+        } else if !cell.revealed() {
+            HIDDEN_CELL
+        } else if cell.mines() != 0 {
+            MINE_CELL
+        } else if cell.surrounding_mines() != 0 {
+            format_mine_cell(cell.surrounding_mines())
+        } else {
+            REVEALED_CELL
+        };
+        let item = (self.x, self.y, cell);
+
+        if self.x + 1 < self.grid.width() {
+            self.x += 1;
+        } else {
+            self.x = 0;
+            self.y += 1;
+        }
+
+        Some(item)
+    }
+}
 
 struct Game {
     rb: RustBox,
@@ -245,101 +351,24 @@ impl Game {
     }
 
     fn draw_grid(&self) {
-        let border_cell = Cell {
-            ch: '#',
-            style: rustbox::RB_NORMAL,
-            fg: Color::Default,
-            bg: Color::Default,
-        };
-        let flag_cell = Cell {
-            ch: 'F',
-            style: rustbox::RB_BOLD,
-            fg: Color::Red,
-            bg: Color::Blue,
-        };
-        let mine_cell = Cell {
-            ch: '*',
-            style: rustbox::RB_BOLD,
-            fg: Color::Red,
-            bg: Color::Default,
-        };
-        let hidden_cell = Cell {
-            ch: ' ',
-            style: rustbox::RB_NORMAL,
-            fg: Color::Default,
-            bg: Color::Blue,
-        };
-        let revealed_cell = Cell {
-            ch: ' ',
-            style: rustbox::RB_NORMAL,
-            fg: Color::Default,
-            bg: Color::Default,
-        };
+        // Draw the top border.
+        print_cell_repeated_x(&self.rb, self.grid_pos.0, self.grid_pos.1, BORDER_CELL, self.grid.width() as usize + 2);
 
-        let mut line_pos = 0;
-        let mut line = Vec::with_capacity(self.grid.width() as usize + 2);
+        // Draw the bottom border.
+        print_cell_repeated_x(&self.rb, self.grid_pos.0, self.grid_pos.1 + self.grid.height() as usize + 1, BORDER_CELL, self.grid.width() as usize + 2);
 
-        line.push(border_cell);
-        for _ in 0..self.grid.width() {
-            line.push(border_cell);
-        }
-        line.push(border_cell);
+        // Draw the left border.
+        print_cell_repeated_y(&self.rb, self.grid_pos.0, self.grid_pos.1 + 1, BORDER_CELL, self.grid.height() as usize);
 
-        print_cells(&self.rb, self.grid_pos.0, self.grid_pos.1 + line_pos, &line);
+        // Draw the right border.
+        print_cell_repeated_y(&self.rb, self.grid_pos.0 + self.grid.width() as usize + 1, self.grid_pos.1 + 1, BORDER_CELL, self.grid.height() as usize);
 
-        for j in 0..self.grid.height() {
-            line_pos += 1;
-            line.clear();
-
-            line.push(border_cell);
-            for i in 0..self.grid.width() {
-                let cell = self.grid.get_cell(i, j).unwrap();
-                line.push(if cell.flags() != 0 {
-                    flag_cell
-                } else if !cell.revealed() {
-                    hidden_cell
-                } else if cell.mines() != 0 {
-                    mine_cell
-                } else if cell.surrounding_mines() != 0 {
-                    self.mine_cell_format(cell.surrounding_mines())
-                } else {
-                    revealed_cell
-                });
-            }
-            line.push(border_cell);
-
-            print_cells(&self.rb, self.grid_pos.0, self.grid_pos.1 + line_pos, &line);
+        // Draw the grid using a CellRenderer.
+        for (x, y, cell) in CellRenderer::new(&self.grid) {
+            let (x, y) = (x as usize, y as usize);
+            self.rb.print_char(self.grid_pos.0 + x + 1, self.grid_pos.1 + y + 1, cell.style, cell.fg, cell.bg, cell.ch);
         }
 
-        line_pos += 1;
-        line.clear();
-
-        line.push(border_cell);
-        for _ in 0..self.grid.width() {
-            line.push(border_cell);
-        }
-        line.push(border_cell);
-        print_cells(&self.rb, self.grid_pos.0, self.grid_pos.1 + line_pos, &line);
-    }
-
-    fn mine_cell_format(&self, mines: u8) -> Cell {
-        let colors = match mines {
-            1 => (Color::Blue, Color::Default),
-            2 => (Color::Green, Color::Default),
-            3 => (Color::Red, Color::Default),
-            4 => (Color::Yellow, Color::Default),
-            5 => (Color::Magenta, Color::Default),
-            6 => (Color::Cyan, Color::Default),
-            7 => (Color::White, Color::Cyan),
-            8 => (Color::White, Color::Magenta),
-            _ => (Color::Default, Color::Default),
-        };
-        Cell {
-            ch: mines.to_string().chars().next().unwrap(),
-            style: rustbox::RB_NORMAL,
-            fg: colors.0,
-            bg: colors.1,
-        }
     }
 
     fn draw_actions(&self) {
