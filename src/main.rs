@@ -145,7 +145,7 @@ impl Game {
 
     fn play_update(&mut self) {
         match self.rb.poll_event(false).unwrap() {
-            Event::KeyEvent(Some(key)) => {
+            Event::KeyEvent(key) => {
                 match key {
                     Key::Char(' ') => {
                         self.grid.reveal(self.cursor_pos.0 as u32,
@@ -173,7 +173,7 @@ impl Game {
 
     fn lose_update(&mut self) {
         match self.rb.poll_event(false).unwrap() {
-            Event::KeyEvent(Some(key)) => {
+            Event::KeyEvent(key) => {
                 match key {
                     Key::Char('n') => self.state = GameState::New,
                     Key::Char('q') => self.state = GameState::Quit,
@@ -186,7 +186,7 @@ impl Game {
 
     fn win_update(&mut self) {
         match self.rb.poll_event(false).unwrap() {
-            Event::KeyEvent(Some(key)) => {
+            Event::KeyEvent(key) => {
                 match key {
                     Key::Char('n') => self.state = GameState::New,
                     Key::Char('q') => self.state = GameState::Quit,
@@ -199,7 +199,7 @@ impl Game {
 
     fn new_update(&mut self) {
         match self.rb.poll_event(false).unwrap() {
-            Event::KeyEvent(Some(key)) => {
+            Event::KeyEvent(key) => {
                 match key {
                     Key::Char('e') => self.reset(Difficulty::Easy),
                     Key::Char('m') => self.reset(Difficulty::Medium),
