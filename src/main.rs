@@ -11,7 +11,7 @@ use rustbox::{
 };
 
 use rustbox_cell::{Cell, print_cell_repeated_x, print_cell_repeated_y};
-use minegrid::{GridState, MineGrid};
+use minegrid::{CellState, GridState, MineGrid};
 
 mod minegrid;
 mod rustbox_cell;
@@ -32,8 +32,8 @@ const FLAG_CELL: Cell = Cell {
 const MINE_CELL: Cell = Cell {
     ch: '*',
     style: rustbox::RB_BOLD,
-    fg: Color::Red,
-    bg: Color::Default,
+    fg: Color::Black,
+    bg: Color::Red,
 };
 const HIDDEN_CELL: Cell = Cell {
     ch: ' ',
@@ -65,7 +65,7 @@ enum Difficulty {
     //Custom(u32, u32, u32),
 }
 
-static ACTION_STRINGS: &'static [&'static [&'static str]] = &[
+static ACTION_STRINGS: &[&[&str]] = &[
     // GameState::Play
     &[
         "Space: reveal",
@@ -145,16 +145,16 @@ impl<'a> Iterator for CellRenderer<'a> {
             Some(c) => c,
             None => panic!("CellRenderer: Could not get cell at ({}, {})!", self.x, self.y),
         };
-        let cell = if cell.flags() != 0 {
-            FLAG_CELL
-        } else if !cell.revealed() {
-            HIDDEN_CELL
-        } else if cell.mines() != 0 {
-            MINE_CELL
-        } else if cell.surrounding_mines() != 0 {
-            format_mine_cell(cell.surrounding_mines())
-        } else {
-            REVEALED_CELL
+        let cell = match cell.state() {
+            CellState::Hidden(0) => HIDDEN_CELL,
+            CellState::Hidden(_) => FLAG_CELL,
+            CellState::Revealed => if cell.mines() != 0 {
+                MINE_CELL
+            } else if cell.surrounding_mines() != 0 {
+                format_mine_cell(cell.surrounding_mines())
+            } else {
+                REVEALED_CELL
+            },
         };
         let item = (self.x, self.y, cell);
 
