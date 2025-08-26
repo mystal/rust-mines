@@ -1,5 +1,3 @@
-extern crate rand;
-
 use std::collections::HashSet;
 
 use rand::Rng;
@@ -80,10 +78,10 @@ impl MineGrid {
         }
 
         let mut grid = MineGrid {
-            cells: cells,
-            width: width,
-            height: height,
-            mines: mines,
+            cells,
+            width,
+            height,
+            mines,
             max_mines: 1,
             mines_flagged: 0,
             spaces_left: width * height - mines,
@@ -174,7 +172,7 @@ impl MineGrid {
             return;
         }
 
-        let ref mut cell = self.cells[y as usize][x as usize];
+        let cell = &mut self.cells[y as usize][x as usize];
         if let CellState::Hidden(flags) = cell.state {
             cell.state = CellState::Hidden((flags + 1) % (self.max_mines + 1))
         }
