@@ -1,52 +1,50 @@
-extern crate rand;
-extern crate rustbox;
+extern crate minegrid;
 
 use std::default::Default;
 
-use rustbox::{
-    Color,
-    Event,
-    Key,
-    RustBox,
-};
+// use rustbox::{
+//     Color,
+//     Event,
+//     Key,
+//     RustBox,
+// };
 
-use rustbox_cell::{Cell, print_cell_repeated_x, print_cell_repeated_y};
+// use rustbox_cell::{Cell, print_cell_repeated_x, print_cell_repeated_y};
 use minegrid::{CellState, GridState, MineGrid};
 
-mod minegrid;
-mod rustbox_cell;
+// mod rustbox_cell;
 
 
-const BORDER_CELL: Cell = Cell {
-    ch: '#',
-    style: rustbox::RB_NORMAL,
-    fg: Color::Default,
-    bg: Color::Default,
-};
-const FLAG_CELL: Cell = Cell {
-    ch: 'F',
-    style: rustbox::RB_BOLD,
-    fg: Color::Red,
-    bg: Color::Blue,
-};
-const MINE_CELL: Cell = Cell {
-    ch: '*',
-    style: rustbox::RB_BOLD,
-    fg: Color::Black,
-    bg: Color::Red,
-};
-const HIDDEN_CELL: Cell = Cell {
-    ch: ' ',
-    style: rustbox::RB_NORMAL,
-    fg: Color::Default,
-    bg: Color::Blue,
-};
-const REVEALED_CELL: Cell = Cell {
-    ch: ' ',
-    style: rustbox::RB_NORMAL,
-    fg: Color::Default,
-    bg: Color::Default,
-};
+// const BORDER_CELL: Cell = Cell {
+//     ch: '#',
+//     style: rustbox::RB_NORMAL,
+//     fg: Color::Default,
+//     bg: Color::Default,
+// };
+// const FLAG_CELL: Cell = Cell {
+//     ch: 'F',
+//     style: rustbox::RB_BOLD,
+//     fg: Color::Red,
+//     bg: Color::Blue,
+// };
+// const MINE_CELL: Cell = Cell {
+//     ch: '*',
+//     style: rustbox::RB_BOLD,
+//     fg: Color::Black,
+//     bg: Color::Red,
+// };
+// const HIDDEN_CELL: Cell = Cell {
+//     ch: ' ',
+//     style: rustbox::RB_NORMAL,
+//     fg: Color::Default,
+//     bg: Color::Blue,
+// };
+// const REVEALED_CELL: Cell = Cell {
+//     ch: ' ',
+//     style: rustbox::RB_NORMAL,
+//     fg: Color::Default,
+//     bg: Color::Default,
+// };
 
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -96,26 +94,26 @@ static ACTION_STRINGS: &[&[&str]] = &[
     ],
 ];
 
-fn format_mine_cell(mines: u8) -> Cell {
-    let (ch, fg, bg) = match mines {
-        1 => ('1', Color::Blue, Color::Default),
-        2 => ('2', Color::Green, Color::Default),
-        3 => ('3', Color::Red, Color::Default),
-        4 => ('4', Color::Yellow, Color::Default),
-        5 => ('5', Color::Magenta, Color::Default),
-        6 => ('6', Color::Cyan, Color::Default),
-        7 => ('7', Color::White, Color::Cyan),
-        8 => ('8', Color::White, Color::Magenta),
-        _ => panic!("Unexpected number of surrounding mines: {}!", mines),
-    };
+// fn format_mine_cell(mines: u8) -> Cell {
+//     let (ch, fg, bg) = match mines {
+//         1 => ('1', Color::Blue, Color::Default),
+//         2 => ('2', Color::Green, Color::Default),
+//         3 => ('3', Color::Red, Color::Default),
+//         4 => ('4', Color::Yellow, Color::Default),
+//         5 => ('5', Color::Magenta, Color::Default),
+//         6 => ('6', Color::Cyan, Color::Default),
+//         7 => ('7', Color::White, Color::Cyan),
+//         8 => ('8', Color::White, Color::Magenta),
+//         _ => panic!("Unexpected number of surrounding mines: {}!", mines),
+//     };
 
-    Cell {
-        ch: ch,
-        style: rustbox::RB_NORMAL,
-        fg: fg,
-        bg: bg,
-    }
-}
+//     Cell {
+//         ch: ch,
+//         style: rustbox::RB_NORMAL,
+//         fg: fg,
+//         bg: bg,
+//     }
+// }
 
 struct CellRenderer<'a> {
     grid: &'a MineGrid,
@@ -133,44 +131,44 @@ impl<'a> CellRenderer<'a> {
     }
 }
 
-impl<'a> Iterator for CellRenderer<'a> {
-    type Item = (u32, u32, Cell);
+// impl<'a> Iterator for CellRenderer<'a> {
+//     type Item = (u32, u32, Cell);
 
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.y >= self.grid.height() {
-            return None;
-        }
+//     fn next(&mut self) -> Option<Self::Item> {
+//         if self.y >= self.grid.height() {
+//             return None;
+//         }
 
-        let cell = match self.grid.get_cell(self.x, self.y) {
-            Some(c) => c,
-            None => panic!("CellRenderer: Could not get cell at ({}, {})!", self.x, self.y),
-        };
-        let cell = match cell.state() {
-            CellState::Hidden(0) => HIDDEN_CELL,
-            CellState::Hidden(_) => FLAG_CELL,
-            CellState::Revealed => if cell.mines() != 0 {
-                MINE_CELL
-            } else if cell.surrounding_mines() != 0 {
-                format_mine_cell(cell.surrounding_mines())
-            } else {
-                REVEALED_CELL
-            },
-        };
-        let item = (self.x, self.y, cell);
+//         let cell = match self.grid.get_cell(self.x, self.y) {
+//             Some(c) => c,
+//             None => panic!("CellRenderer: Could not get cell at ({}, {})!", self.x, self.y),
+//         };
+//         let cell = match cell.state() {
+//             CellState::Hidden(0) => HIDDEN_CELL,
+//             CellState::Hidden(_) => FLAG_CELL,
+//             CellState::Revealed => if cell.mines() != 0 {
+//                 MINE_CELL
+//             } else if cell.surrounding_mines() != 0 {
+//                 format_mine_cell(cell.surrounding_mines())
+//             } else {
+//                 REVEALED_CELL
+//             },
+//         };
+//         let item = (self.x, self.y, cell);
 
-        if self.x + 1 < self.grid.width() {
-            self.x += 1;
-        } else {
-            self.x = 0;
-            self.y += 1;
-        }
+//         if self.x + 1 < self.grid.width() {
+//             self.x += 1;
+//         } else {
+//             self.x = 0;
+//             self.y += 1;
+//         }
 
-        Some(item)
-    }
-}
+//         Some(item)
+//     }
+// }
 
 struct Game {
-    rb: RustBox,
+    // rb: RustBox,
     grid: MineGrid,
     grid_pos: (usize, usize),
     actions_pos: (usize, usize),
@@ -182,9 +180,9 @@ struct Game {
 }
 
 impl Game {
-    fn new(rb: RustBox) -> Game {
+    fn new() -> Game {
         let mut game = Game {
-            rb: rb,
+            // rb: rb,
             grid: MineGrid::new(0, 0, 0),
             grid_pos: (20, 1),
             actions_pos: (0, 2),
@@ -250,132 +248,132 @@ impl Game {
     }
 
     fn play_update(&mut self) {
-        match self.rb.poll_event(false).unwrap() {
-            Event::KeyEvent(key) => {
-                match key {
-                    Key::Char(' ') => {
-                        self.grid.reveal(self.cursor_pos.0 as u32,
-                                         self.cursor_pos.1 as u32);
-                        match self.grid.state() {
-                            GridState::Play => {},
-                            GridState::Win => self.state = GameState::Win,
-                            GridState::Lose => self.state = GameState::Lose,
-                        }
-                    },
-                    Key::Char('f') => self.grid.toggle_flag(
-                        self.cursor_pos.0 as u32, self.cursor_pos.1 as u32),
-                    Key::Up => self.move_cursor_up(),
-                    Key::Down => self.move_cursor_down(),
-                    Key::Left => self.move_cursor_left(),
-                    Key::Right => self.move_cursor_right(),
-                    Key::Char('n') => self.state = GameState::New,
-                    Key::Char('q') => self.state = GameState::Quit,
-                    _ => return,
-                }
-            },
-            _ => return,
-        }
+        // match self.rb.poll_event(false).unwrap() {
+        //     Event::KeyEvent(key) => {
+        //         match key {
+        //             Key::Char(' ') => {
+        //                 self.grid.reveal(self.cursor_pos.0 as u32,
+        //                                  self.cursor_pos.1 as u32);
+        //                 match self.grid.state() {
+        //                     GridState::Play => {},
+        //                     GridState::Win => self.state = GameState::Win,
+        //                     GridState::Lose => self.state = GameState::Lose,
+        //                 }
+        //             },
+        //             Key::Char('f') => self.grid.toggle_flag(
+        //                 self.cursor_pos.0 as u32, self.cursor_pos.1 as u32),
+        //             Key::Up => self.move_cursor_up(),
+        //             Key::Down => self.move_cursor_down(),
+        //             Key::Left => self.move_cursor_left(),
+        //             Key::Right => self.move_cursor_right(),
+        //             Key::Char('n') => self.state = GameState::New,
+        //             Key::Char('q') => self.state = GameState::Quit,
+        //             _ => return,
+        //         }
+        //     },
+        //     _ => return,
+        // }
     }
 
     fn lose_update(&mut self) {
-        match self.rb.poll_event(false).unwrap() {
-            Event::KeyEvent(key) => {
-                match key {
-                    Key::Char('n') => self.state = GameState::New,
-                    Key::Char('q') => self.state = GameState::Quit,
-                    _ => return,
-                }
-            },
-            _ => return,
-        }
+        // match self.rb.poll_event(false).unwrap() {
+        //     Event::KeyEvent(key) => {
+        //         match key {
+        //             Key::Char('n') => self.state = GameState::New,
+        //             Key::Char('q') => self.state = GameState::Quit,
+        //             _ => return,
+        //         }
+        //     },
+        //     _ => return,
+        // }
     }
 
     fn win_update(&mut self) {
-        match self.rb.poll_event(false).unwrap() {
-            Event::KeyEvent(key) => {
-                match key {
-                    Key::Char('n') => self.state = GameState::New,
-                    Key::Char('q') => self.state = GameState::Quit,
-                    _ => return,
-                }
-            },
-            _ => return,
-        }
+        // match self.rb.poll_event(false).unwrap() {
+        //     Event::KeyEvent(key) => {
+        //         match key {
+        //             Key::Char('n') => self.state = GameState::New,
+        //             Key::Char('q') => self.state = GameState::Quit,
+        //             _ => return,
+        //         }
+        //     },
+        //     _ => return,
+        // }
     }
 
     fn new_update(&mut self) {
-        match self.rb.poll_event(false).unwrap() {
-            Event::KeyEvent(key) => {
-                match key {
-                    Key::Char('e') => self.reset(Difficulty::Easy),
-                    Key::Char('m') => self.reset(Difficulty::Medium),
-                    Key::Char('h') => self.reset(Difficulty::Hard),
-                    Key::Char('c') => self.state = match self.grid.state() {
-                        GridState::Play => GameState::Play,
-                        GridState::Lose => GameState::Lose,
-                        GridState::Win => GameState::Win,
-                    },
-                    Key::Char('q') => self.state = GameState::Quit,
-                    _ => return,
-                }
-            },
-            _ => return,
-        }
+        // match self.rb.poll_event(false).unwrap() {
+        //     Event::KeyEvent(key) => {
+        //         match key {
+        //             Key::Char('e') => self.reset(Difficulty::Easy),
+        //             Key::Char('m') => self.reset(Difficulty::Medium),
+        //             Key::Char('h') => self.reset(Difficulty::Hard),
+        //             Key::Char('c') => self.state = match self.grid.state() {
+        //                 GridState::Play => GameState::Play,
+        //                 GridState::Lose => GameState::Lose,
+        //                 GridState::Win => GameState::Win,
+        //             },
+        //             Key::Char('q') => self.state = GameState::Quit,
+        //             _ => return,
+        //         }
+        //     },
+        //     _ => return,
+        // }
     }
 
     fn display(&self) {
-        self.rb.clear();
+        // self.rb.clear();
 
-        // Title
-        self.rb.print(0, 0, rustbox::RB_BOLD, Color::Default, Color::Default, "Minesweeper");
+        // // Title
+        // self.rb.print(0, 0, rustbox::RB_BOLD, Color::Default, Color::Default, "Minesweeper");
 
-        self.draw_actions();
+        // self.draw_actions();
 
-        // Mine counter
-        self.rb.print(self.mines_pos.0, self.mines_pos.1,
-                      rustbox::RB_BOLD, Color::Red, Color::White,
-                      &format!("{:02}", self.grid.mines_left()));
+        // // Mine counter
+        // self.rb.print(self.mines_pos.0, self.mines_pos.1,
+        //               rustbox::RB_BOLD, Color::Red, Color::White,
+        //               &format!("{:02}", self.grid.mines_left()));
 
-        self.draw_grid();
+        // self.draw_grid();
 
-        self.draw_status();
+        // self.draw_status();
 
-        if self.state == GameState::Play {
-            self.rb.set_cursor((self.cursor_pos.0 + self.grid_pos.0 + 1) as isize,
-                               (self.cursor_pos.1 + self.grid_pos.1 + 1) as isize);
-        } else {
-            self.rb.set_cursor(-1, -1);
-        }
+        // if self.state == GameState::Play {
+        //     self.rb.set_cursor((self.cursor_pos.0 + self.grid_pos.0 + 1) as isize,
+        //                        (self.cursor_pos.1 + self.grid_pos.1 + 1) as isize);
+        // } else {
+        //     self.rb.set_cursor(-1, -1);
+        // }
 
-        self.rb.present();
+        // self.rb.present();
     }
 
     fn draw_grid(&self) {
-        // Draw the top border.
-        print_cell_repeated_x(&self.rb, self.grid_pos.0, self.grid_pos.1, BORDER_CELL, self.grid.width() as usize + 2);
+        // // Draw the top border.
+        // print_cell_repeated_x(&self.rb, self.grid_pos.0, self.grid_pos.1, BORDER_CELL, self.grid.width() as usize + 2);
 
-        // Draw the bottom border.
-        print_cell_repeated_x(&self.rb, self.grid_pos.0, self.grid_pos.1 + self.grid.height() as usize + 1, BORDER_CELL, self.grid.width() as usize + 2);
+        // // Draw the bottom border.
+        // print_cell_repeated_x(&self.rb, self.grid_pos.0, self.grid_pos.1 + self.grid.height() as usize + 1, BORDER_CELL, self.grid.width() as usize + 2);
 
-        // Draw the left border.
-        print_cell_repeated_y(&self.rb, self.grid_pos.0, self.grid_pos.1 + 1, BORDER_CELL, self.grid.height() as usize);
+        // // Draw the left border.
+        // print_cell_repeated_y(&self.rb, self.grid_pos.0, self.grid_pos.1 + 1, BORDER_CELL, self.grid.height() as usize);
 
-        // Draw the right border.
-        print_cell_repeated_y(&self.rb, self.grid_pos.0 + self.grid.width() as usize + 1, self.grid_pos.1 + 1, BORDER_CELL, self.grid.height() as usize);
+        // // Draw the right border.
+        // print_cell_repeated_y(&self.rb, self.grid_pos.0 + self.grid.width() as usize + 1, self.grid_pos.1 + 1, BORDER_CELL, self.grid.height() as usize);
 
-        // Draw the grid using a CellRenderer.
-        for (x, y, cell) in CellRenderer::new(&self.grid) {
-            let (x, y) = (x as usize, y as usize);
-            self.rb.print_char(self.grid_pos.0 + x + 1, self.grid_pos.1 + y + 1, cell.style, cell.fg, cell.bg, cell.ch);
-        }
+        // // Draw the grid using a CellRenderer.
+        // for (x, y, cell) in CellRenderer::new(&self.grid) {
+        //     let (x, y) = (x as usize, y as usize);
+        //     self.rb.print_char(self.grid_pos.0 + x + 1, self.grid_pos.1 + y + 1, cell.style, cell.fg, cell.bg, cell.ch);
+        // }
 
     }
 
     fn draw_actions(&self) {
-        for (i, text) in ACTION_STRINGS[self.state as usize].iter().enumerate() {
-            self.rb.print(self.actions_pos.0, self.actions_pos.1 + i,
-                          rustbox::RB_NORMAL, Color::Default, Color::Default, text);
-        }
+        // for (i, text) in ACTION_STRINGS[self.state as usize].iter().enumerate() {
+        //     self.rb.print(self.actions_pos.0, self.actions_pos.1 + i,
+        //                   rustbox::RB_NORMAL, Color::Default, Color::Default, text);
+        // }
     }
 
     fn draw_status(&self) {
@@ -386,15 +384,15 @@ impl Game {
             GameState::New => "Choose a difficulty",
             _ => "",
         };
-        self.rb.print(self.status_pos.0, self.status_pos.1,
-                      rustbox::RB_NORMAL, Color::Default, Color::Default, &status);
+        // self.rb.print(self.status_pos.0, self.status_pos.1,
+        //               rustbox::RB_NORMAL, Color::Default, Color::Default, &status);
     }
 }
 
 fn main() {
-    let rb = RustBox::init(Default::default()).unwrap();
+    // let rb = RustBox::init(Default::default()).unwrap();
 
-    let mut game = Game::new(rb);
+    let mut game = Game::new();
 
     while game.state != GameState::Quit {
         game.display();

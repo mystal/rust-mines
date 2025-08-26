@@ -55,11 +55,11 @@ impl MineGrid {
         let mut cells = Vec::with_capacity(height as usize);
 
         // Randomly place mines
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let mut mine_points = HashSet::new();
         while mine_points.len() != mines as usize {
-            let point = (rng.gen_range(0, width),
-                         rng.gen_range(0, height));
+            let point = (rng.random_range(0..width),
+                         rng.random_range(0..height));
             mine_points.insert(point);
         }
 
