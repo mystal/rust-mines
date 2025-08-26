@@ -4,8 +4,16 @@ use rand::Rng;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum CellState {
-    Hidden(u8),
+    Hidden {
+        flags: u8,
+    },
     Revealed,
+}
+
+impl Default for CellState {
+    fn default() -> Self {
+        Self::Hidden { flags: 0 }
+    }
 }
 
 #[derive(Clone)]
@@ -70,7 +78,7 @@ impl MineGrid {
                     x: i,
                     y: j,
                     mines: if mine_points.contains(&(i, j)) { 1 } else { 0 },
-                    state: CellState::Hidden(0),
+                    state: CellState::default(),
                     surrounding_mines: 0,
                 });
             }
@@ -158,13 +166,13 @@ impl MineGrid {
     }
 
     fn count_surrounding_flags(&self, x: u32, y: u32) -> u8 {
-        let mut flags = 0;
+        let mut total_flags = 0;
         for cell in self.get_neighbors(x, y) {
-            if let CellState::Hidden(f) = cell.state {
-                flags += f;
+            if let CellState::Hidden { flags } = cell.state {
+                total_flags += flags;
             }
         }
-        flags
+        total_flags
     }
 
     pub fn toggle_flag(&mut self, x: u32, y: u32) {
@@ -173,8 +181,8 @@ impl MineGrid {
         }
 
         let cell = &mut self.cells[y as usize][x as usize];
-        if let CellState::Hidden(flags) = cell.state {
-            cell.state = CellState::Hidden((flags + 1) % (self.max_mines + 1))
+        if let CellState::Hidden { flags } = cell.state {
+            cell.state = CellState::Hidden { flags: (flags + 1) % (self.max_mines + 1) }
         }
     }
 
@@ -185,7 +193,7 @@ impl MineGrid {
 
         let cell = self.cells[y as usize][x as usize].clone();
         match cell.state {
-            CellState::Hidden(0) => {
+            CellState::Hidden { flags: 0 } => {
                 // Try to reveal.
                 self.cells[y as usize][x as usize].state = CellState::Revealed;
 
@@ -206,7 +214,7 @@ impl MineGrid {
                     }
                 }
             },
-            CellState::Hidden(_) => {
+            CellState::Hidden { .. } => {
                 // Do nothing, since players can't reveal flagged cells.
             },
             CellState::Revealed => {
@@ -218,7 +226,7 @@ impl MineGrid {
                     return;
                 }
                 for neighbor in self.get_neighbors(x, y) {
-                    if let CellState::Hidden(_) = neighbor.state {
+                    if let CellState::Hidden { .. } = neighbor.state {
                         self.reveal(neighbor.x, neighbor.y);
                     }
                 }
@@ -279,11 +287,11 @@ mod minegrid_test {
         let (width, height, mines) = (10, 10, 10);
         let mut grid = MineGrid::new(width, height, mines);
 
-        assert_eq!(CellState::Hidden(0), grid.get_cell(0, 0).unwrap().state());
+        assert_eq!(CellState::Hidden { flags: 0 }, grid.get_cell(0, 0).unwrap().state());
         grid.toggle_flag(0, 0);
-        assert_eq!(CellState::Hidden(1), grid.get_cell(0, 0).unwrap().state());
+        assert_eq!(CellState::Hidden { flags: 1 }, grid.get_cell(0, 0).unwrap().state());
         grid.toggle_flag(0, 0);
-        assert_eq!(CellState::Hidden(0), grid.get_cell(0, 0).unwrap().state());
+        assert_eq!(CellState::Hidden { flags: 0 }, grid.get_cell(0, 0).unwrap().state());
     }
 
     #[test]
@@ -291,7 +299,7 @@ mod minegrid_test {
         let (width, height, mines) = (10, 10, 0);
         let mut grid = MineGrid::new(width, height, mines);
 
-        assert_eq!(CellState::Hidden(0), grid.get_cell(0, 0).unwrap().state());
+        assert_eq!(CellState::Hidden { flags: 0 }, grid.get_cell(0, 0).unwrap().state());
         assert_eq!(GridState::Play, grid.state());
         grid.reveal(0, 0);
         for j in 0..height {
@@ -307,7 +315,7 @@ mod minegrid_test {
         let (width, height, mines) = (10, 10, 100);
         let mut grid = MineGrid::new(width, height, mines);
 
-        assert_eq!(CellState::Hidden(0), grid.get_cell(0, 0).unwrap().state());
+        assert_eq!(CellState::Hidden { flags: 0 }, grid.get_cell(0, 0).unwrap().state());
         assert_eq!(GridState::Play, grid.state());
         grid.reveal(0, 0);
         assert_eq!(CellState::Revealed, grid.get_cell(0, 0).unwrap().state());
