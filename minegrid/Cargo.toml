@@ -1,9 +1,8 @@
 [package]
-name = "rust-mines"
-version = "0.0.1"
+name = "minegrid"
+version = "0.1.0"
 authors = ["Gabriel Martinez <reitaka@gmail.com>"]
 edition = "2015"
 
 [dependencies]
-rand = "^0.3.15"
-rustbox = "^0.9.0"
+rand = "0.5"
