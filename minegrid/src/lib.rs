@@ -1,4 +1,7 @@
-use std::collections::HashSet;
+use std::{
+    collections::HashSet,
+    ops::{Index, IndexMut},
+};
 
 use rand::Rng;
 
@@ -33,7 +36,7 @@ pub enum GridState {
 }
 
 pub struct MineGrid {
-    cells: Vec<Vec<Cell>>, // TODO: Use a single vector that you index into.
+    cells: Vec<Cell>,
     width: u32,
     height: u32,
     mines: u32,
@@ -60,7 +63,7 @@ impl Cell {
 
 impl MineGrid {
     pub fn new(width: u32, height: u32, mines: u32) -> MineGrid {
-        let mut cells = Vec::with_capacity(height as usize);
+        let mut cells = Vec::with_capacity((width * height) as usize);
 
         // Randomly place mines
         let mut rng = rand::rng();
@@ -72,9 +75,8 @@ impl MineGrid {
         }
 
         for j in 0..height {
-            let mut row = Vec::with_capacity(width as usize);
             for i in 0..width {
-                row.push(Cell {
+                cells.push(Cell {
                     x: i,
                     y: j,
                     mines: if mine_points.contains(&(i, j)) { 1 } else { 0 },
@@ -82,7 +84,6 @@ impl MineGrid {
                     surrounding_mines: 0,
                 });
             }
-            cells.push(row);
         }
 
         let mut grid = MineGrid {
@@ -99,7 +100,7 @@ impl MineGrid {
         // Cache surrounding mine count in each cell.
         for j in 0..height {
             for i in 0..width {
-                grid.cells[j as usize][i as usize].surrounding_mines =
+                grid[(i, j)].surrounding_mines =
                     grid.count_surrounding_mines(i, j);
             }
         }
@@ -136,7 +137,7 @@ impl MineGrid {
 
     pub fn get_cell(&self, x: u32, y: u32) -> Option<Cell> {
         if self.check_point(x, y) {
-            Some(self.cells[y as usize][x as usize].clone())
+            Some(self[(x, y)].clone())
         } else {
             None
         }
@@ -180,9 +181,10 @@ impl MineGrid {
             return;
         }
 
-        let cell = &mut self.cells[y as usize][x as usize];
+        let max_mines = self.max_mines;
+        let cell = &mut self[(x, y)];
         if let CellState::Hidden { flags } = cell.state {
-            cell.state = CellState::Hidden { flags: (flags + 1) % (self.max_mines + 1) }
+            cell.state = CellState::Hidden { flags: (flags + 1) % (max_mines + 1) }
         }
     }
 
@@ -191,11 +193,11 @@ impl MineGrid {
             return;
         }
 
-        let cell = self.cells[y as usize][x as usize].clone();
+        let cell = self[(x, y)].clone();
         match cell.state {
             CellState::Hidden { flags: 0 } => {
                 // Try to reveal.
-                self.cells[y as usize][x as usize].state = CellState::Revealed;
+                self[(x, y)].state = CellState::Revealed;
 
                 if cell.mines != 0 {
                     self.state = GridState::Lose;
@@ -232,6 +234,22 @@ impl MineGrid {
                 }
             },
         }
+    }
+}
+
+impl Index<(u32, u32)> for MineGrid {
+    type Output = Cell;
+
+    fn index(&self, index: (u32, u32)) -> &Self::Output {
+        let i = (index.1 * self.width) + index.0;
+        &self.cells[i as usize]
+    }
+}
+
+impl IndexMut<(u32, u32)> for MineGrid {
+    fn index_mut(&mut self, index: (u32, u32)) -> &mut Self::Output {
+        let i = (index.1 * self.width) + index.0;
+        &mut self.cells[i as usize]
     }
 }
 
