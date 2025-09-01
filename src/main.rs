@@ -1,51 +1,15 @@
-extern crate minegrid;
-
-use std::default::Default;
-
-// use rustbox::{
-//     Color,
-//     Event,
-//     Key,
-//     RustBox,
-// };
-
-// use rustbox_cell::{Cell, print_cell_repeated_x, print_cell_repeated_y};
+use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 use minegrid::{CellState, GridState, MineGrid};
-
-// mod rustbox_cell;
-
-
-// const BORDER_CELL: Cell = Cell {
-//     ch: '#',
-//     style: rustbox::RB_NORMAL,
-//     fg: Color::Default,
-//     bg: Color::Default,
-// };
-// const FLAG_CELL: Cell = Cell {
-//     ch: 'F',
-//     style: rustbox::RB_BOLD,
-//     fg: Color::Red,
-//     bg: Color::Blue,
-// };
-// const MINE_CELL: Cell = Cell {
-//     ch: '*',
-//     style: rustbox::RB_BOLD,
-//     fg: Color::Black,
-//     bg: Color::Red,
-// };
-// const HIDDEN_CELL: Cell = Cell {
-//     ch: ' ',
-//     style: rustbox::RB_NORMAL,
-//     fg: Color::Default,
-//     bg: Color::Blue,
-// };
-// const REVEALED_CELL: Cell = Cell {
-//     ch: ' ',
-//     style: rustbox::RB_NORMAL,
-//     fg: Color::Default,
-//     bg: Color::Default,
-// };
-
+use ratatui::{
+    DefaultTerminal,
+    Frame,
+    buffer::{Buffer, Cell},
+    layout::{Constraint, Flex, Layout, Rect},
+    style::{Color, Modifier, Stylize},
+    symbols::border,
+    text::Line,
+    widgets::{Block, Widget},
+};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum GameState {
@@ -60,7 +24,11 @@ enum Difficulty {
     Easy,
     Medium,
     Hard,
-    //Custom(u32, u32, u32),
+    Custom {
+        width: u32,
+        height: u32,
+        mines: u32,
+    },
 }
 
 static ACTION_STRINGS: &[&[&str]] = &[
@@ -94,87 +62,32 @@ static ACTION_STRINGS: &[&[&str]] = &[
     ],
 ];
 
-// fn format_mine_cell(mines: u8) -> Cell {
-//     let (ch, fg, bg) = match mines {
-//         1 => ('1', Color::Blue, Color::Default),
-//         2 => ('2', Color::Green, Color::Default),
-//         3 => ('3', Color::Red, Color::Default),
-//         4 => ('4', Color::Yellow, Color::Default),
-//         5 => ('5', Color::Magenta, Color::Default),
-//         6 => ('6', Color::Cyan, Color::Default),
-//         7 => ('7', Color::White, Color::Cyan),
-//         8 => ('8', Color::White, Color::Magenta),
-//         _ => panic!("Unexpected number of surrounding mines: {}!", mines),
-//     };
+fn format_mine_cell(mines: u8) -> Cell {
+    let (num_str, fg, bg) = match mines {
+        1 => ("1", Color::Blue, Color::Reset),
+        2 => ("2", Color::Green, Color::Reset),
+        3 => ("3", Color::Red, Color::Reset),
+        4 => ("4", Color::Yellow, Color::Reset),
+        5 => ("5", Color::Magenta, Color::Reset),
+        6 => ("6", Color::Cyan, Color::Reset),
+        7 => ("7", Color::White, Color::Cyan),
+        8 => ("8", Color::White, Color::Magenta),
+        _ => panic!("Unexpected number of surrounding mines: {}!", mines),
+    };
 
-//     Cell {
-//         ch: ch,
-//         style: rustbox::RB_NORMAL,
-//         fg: fg,
-//         bg: bg,
-//     }
-// }
-
-struct CellRenderer<'a> {
-    grid: &'a MineGrid,
-    x: u32,
-    y: u32,
+    let mut cell = Cell::new(num_str);
+    cell.fg = fg;
+    cell.bg = bg;
+    cell
 }
-
-impl<'a> CellRenderer<'a> {
-    fn new(grid: &'a MineGrid) -> Self {
-        CellRenderer {
-            grid: grid,
-            x: 0,
-            y: 0,
-        }
-    }
-}
-
-// impl<'a> Iterator for CellRenderer<'a> {
-//     type Item = (u32, u32, Cell);
-
-//     fn next(&mut self) -> Option<Self::Item> {
-//         if self.y >= self.grid.height() {
-//             return None;
-//         }
-
-//         let cell = match self.grid.get_cell(self.x, self.y) {
-//             Some(c) => c,
-//             None => panic!("CellRenderer: Could not get cell at ({}, {})!", self.x, self.y),
-//         };
-//         let cell = match cell.state() {
-//             CellState::Hidden(0) => HIDDEN_CELL,
-//             CellState::Hidden(_) => FLAG_CELL,
-//             CellState::Revealed => if cell.mines() != 0 {
-//                 MINE_CELL
-//             } else if cell.surrounding_mines() != 0 {
-//                 format_mine_cell(cell.surrounding_mines())
-//             } else {
-//                 REVEALED_CELL
-//             },
-//         };
-//         let item = (self.x, self.y, cell);
-
-//         if self.x + 1 < self.grid.width() {
-//             self.x += 1;
-//         } else {
-//             self.x = 0;
-//             self.y += 1;
-//         }
-
-//         Some(item)
-//     }
-// }
 
 struct Game {
-    // rb: RustBox,
     grid: MineGrid,
-    grid_pos: (usize, usize),
+    grid_pos: (u16, u16),
     actions_pos: (usize, usize),
     status_pos: (usize, usize),
     mines_pos: (usize, usize),
-    cursor_pos: (usize, usize),
+    cursor_pos: (u16, u16),
     //grid_changed: bool,
     state: GameState,
 }
@@ -182,15 +95,14 @@ struct Game {
 impl Game {
     fn new() -> Game {
         let mut game = Game {
-            // rb: rb,
+            state: GameState::Play,
             grid: MineGrid::new(0, 0, 0),
-            grid_pos: (20, 1),
+            grid_pos: (0, 0),
             actions_pos: (0, 2),
             status_pos: (0, 0),
             mines_pos: (0, 0),
             cursor_pos: (0, 0),
             //grid_changed: false,
-            state: GameState::Play,
         };
 
         game.reset(Difficulty::Easy);
@@ -198,17 +110,50 @@ impl Game {
         game
     }
 
+    fn run(&mut self, mut terminal: DefaultTerminal) {
+        terminal.clear().unwrap();
+        while self.state != GameState::Quit {
+            terminal.draw(|frame| {
+                self.draw(frame);
+            }).unwrap();
+            self.handle_events();
+        }
+    }
+
+    fn handle_events(&mut self) {
+        match event::read().unwrap() {
+            // It's important to check that the event is a key press event as
+            // crossterm also emits key release and repeat events on Windows.
+            Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
+                self.handle_key_event(key_event)
+            }
+            _ => {}
+        };
+    }
+
+    fn handle_key_event(&mut self, key_event: KeyEvent) {
+        match key_event.code {
+            KeyCode::Char('q') => self.state = GameState::Quit,
+            KeyCode::Char(' ') => self.grid.reveal(self.cursor_pos.0 as u32, self.cursor_pos.1 as u32),
+            KeyCode::Char('f') => self.grid.toggle_flag(self.cursor_pos.0 as u32, self.cursor_pos.1 as u32),
+            KeyCode::Left => self.move_cursor_left(),
+            KeyCode::Right => self.move_cursor_right(),
+            KeyCode::Up => self.move_cursor_up(),
+            KeyCode::Down => self.move_cursor_down(),
+            _ => {}
+        }
+    }
+
     fn reset(&mut self, difficulty: Difficulty) {
         match difficulty {
             Difficulty::Easy => self.grid = MineGrid::new(9, 9, 10),
             Difficulty::Medium => self.grid = MineGrid::new(16, 16, 40),
             Difficulty::Hard => self.grid = MineGrid::new(40, 16, 99),
-            //Difficulty::Custom(width, height, mines) =>
-            //    self.grid = MineGrid::new(width, height, mines),
+            Difficulty::Custom { width, height, mines } => self.grid = MineGrid::new(width, height, mines),
         }
 
-        self.status_pos = (0, self.grid_pos.1 + self.grid.height() as usize + 3);
-        self.mines_pos = (self.grid_pos.0 + self.grid.width() as usize / 2, 0);
+        // self.status_pos = (0, self.grid_pos.1 + self.grid.height() as usize + 3);
+        // self.mines_pos = (self.grid_pos.0 + self.grid.width() as usize / 2, 0);
         self.cursor_pos = (0, 0);
         self.state = GameState::Play;
     }
@@ -220,7 +165,7 @@ impl Game {
     }
 
     fn move_cursor_down(&mut self) {
-        if self.cursor_pos.1 < self.grid.height() as usize - 1 {
+        if (self.cursor_pos.1 as u32) < self.grid.height() - 1 {
             self.cursor_pos.1 += 1;
         }
     }
@@ -232,7 +177,7 @@ impl Game {
     }
 
     fn move_cursor_right(&mut self) {
-        if self.cursor_pos.0 < self.grid.width() as usize - 1 {
+        if (self.cursor_pos.0 as u32) < self.grid.width() - 1 {
             self.cursor_pos.0 += 1;
         }
     }
@@ -321,31 +266,8 @@ impl Game {
         // }
     }
 
-    fn display(&self) {
-        // self.rb.clear();
-
-        // // Title
-        // self.rb.print(0, 0, rustbox::RB_BOLD, Color::Default, Color::Default, "Minesweeper");
-
-        // self.draw_actions();
-
-        // // Mine counter
-        // self.rb.print(self.mines_pos.0, self.mines_pos.1,
-        //               rustbox::RB_BOLD, Color::Red, Color::White,
-        //               &format!("{:02}", self.grid.mines_left()));
-
-        // self.draw_grid();
-
-        // self.draw_status();
-
-        // if self.state == GameState::Play {
-        //     self.rb.set_cursor((self.cursor_pos.0 + self.grid_pos.0 + 1) as isize,
-        //                        (self.cursor_pos.1 + self.grid_pos.1 + 1) as isize);
-        // } else {
-        //     self.rb.set_cursor(-1, -1);
-        // }
-
-        // self.rb.present();
+    fn draw(&self, frame: &mut Frame) {
+        frame.render_widget(self, frame.area());
     }
 
     fn draw_grid(&self) {
@@ -366,7 +288,6 @@ impl Game {
         //     let (x, y) = (x as usize, y as usize);
         //     self.rb.print_char(self.grid_pos.0 + x + 1, self.grid_pos.1 + y + 1, cell.style, cell.fg, cell.bg, cell.ch);
         // }
-
     }
 
     fn draw_actions(&self) {
@@ -389,13 +310,97 @@ impl Game {
     }
 }
 
-fn main() {
-    // let rb = RustBox::init(Default::default()).unwrap();
+impl Widget for &Game {
+    fn render(self, area: Rect, buf: &mut Buffer) {
+        // Title
+        let title = Line::from(" Minesweeper ".bold());
+        let instructions = Line::from(vec![
+            // " Decrement ".into(),
+            // "<Left>".blue().bold(),
+            // " Increment ".into(),
+            // "<Right>".blue().bold(),
+            " Quit ".into(),
+            "<Q> ".blue().bold(),
+        ]);
+        let block = Block::bordered()
+            .title(title.centered())
+            .title_bottom(instructions.centered())
+            .border_set(border::THICK);
+        block.render(area, buf);
 
-    let mut game = Game::new();
+        // self.draw_actions();
 
-    while game.state != GameState::Quit {
-        game.display();
-        game.update();
+        // Mine counter
+        // self.rb.print(self.mines_pos.0, self.mines_pos.1,
+        //               rustbox::RB_BOLD, Color::Red, Color::White,
+        //               &format!("{:02}", self.grid.mines_left()));
+
+        // self.draw_grid();
+
+        // self.draw_status();
+
+        // Draw the minegrid.
+        let mut hidden_cell = Cell::new(" ");
+        hidden_cell.bg = Color::Blue;
+        let revealed_cell = Cell::new(" ");
+        let mut mine_cell = Cell::new("💣");
+        mine_cell.bg = Color::Red;
+        let mut flag_cell = Cell::new("🚩");
+        flag_cell.bg = Color::Blue;
+
+        // Each minegrid cell takes two terminal cells.
+        let grid_area = center(area, Constraint::Length((self.grid.width() * 2) as u16), Constraint::Length(self.grid.height() as u16));
+        for j in 0..self.grid.height() {
+            for i in 0..self.grid.width() {
+                let grid_cell = &self.grid[(i, j)];
+                let mut cell = match grid_cell.state() {
+                    CellState::Hidden { flags: 0 } => hidden_cell.clone(),
+                    CellState::Hidden { .. } => flag_cell.clone(),
+                    CellState::Revealed => if grid_cell.mines() != 0 {
+                        mine_cell.clone()
+                    } else if grid_cell.surrounding_mines() != 0 {
+                        format_mine_cell(grid_cell.surrounding_mines())
+                    } else {
+                        revealed_cell.clone()
+                    },
+                };
+                // Use a white background to show the cursor position.
+                if self.grid.state() == GridState::Play && self.cursor_pos == (i as u16, j as u16) {
+                    cell.bg = Color::White;
+                    cell.modifier = Modifier::BOLD;
+                }
+                let tui_cell_coords_left = (grid_area.left() + (i * 2) as u16, grid_area.top() + j as u16);
+                if let Some(buf_cell_left) = buf.cell_mut(tui_cell_coords_left) {
+                    *buf_cell_left = cell.clone();
+                    if !(buf_cell_left.symbol() == flag_cell.symbol() || buf_cell_left.symbol() == mine_cell.symbol()) {
+                        buf_cell_left.set_symbol(" ");
+                    }
+                }
+                let tui_cell_coords_right = (tui_cell_coords_left.0 + 1, tui_cell_coords_left.1);
+                if let Some(buf_cell_right) = buf.cell_mut(tui_cell_coords_right) {
+                    *buf_cell_right = cell;
+                    if buf_cell_right.symbol() == flag_cell.symbol() || buf_cell_right.symbol() == mine_cell.symbol() {
+                        buf_cell_right.set_symbol(" ");
+                    }
+                }
+            }
+        }
     }
+}
+
+// Return a centered area following the given constraints.
+//
+// Based on:
+fn center(area: Rect, horizontal: Constraint, vertical: Constraint) -> Rect {
+    let [area] = Layout::horizontal([horizontal])
+        .flex(Flex::Center)
+        .areas(area);
+    let [area] = Layout::vertical([vertical]).flex(Flex::Center).areas(area);
+    area
+}
+
+fn main() {
+    let terminal = ratatui::init();
+    Game::new().run(terminal);
+    ratatui::restore();
 }

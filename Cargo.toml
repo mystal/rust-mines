@@ -6,9 +6,11 @@ authors = ["Gabriel Martinez <reitaka@gmail.com>"]
 
 [package]
 name = "rust-mines"
-version = "0.0.1"
-edition = "2015"
+version = "0.1.0"
+edition = "2024"
 authors.workspace = true
 
 [dependencies]
-minegrid = { version = "0.1", path = "./minegrid" }
+crossterm = "0.28"
+minegrid = { version = "0.1", path = "minegrid" }
+ratatui = "0.29"
