@@ -3,12 +3,14 @@ members = ["minegrid"]
 
 [workspace.package]
 authors = ["Gabriel Martinez <reitaka@gmail.com>"]
+rust-version = "1.89"
 
 [package]
 name = "rust-mines"
 version = "0.1.0"
 edition = "2024"
 authors.workspace = true
+rust-version.workspace = true
 
 [dependencies]
 crossterm = "0.28"
